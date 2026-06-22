@@ -8,6 +8,9 @@ import type {
   ArticleSummary,
   AuditLog,
   AuthResult,
+  BlueprintFacets,
+  BlueprintFull,
+  BlueprintSummary,
   Category,
   Comment,
   ContentTemplate,
@@ -22,9 +25,11 @@ import type {
   Role,
   SystemSettings,
   UserProfileDetail,
+  ValueNode,
   VoteType,
 } from '@/types'
 import * as db from './data'
+import { blueprintsFull, valueNodes } from './blueprints'
 
 const delay = (ms = 320) => new Promise((r) => setTimeout(r, ms))
 
@@ -355,6 +360,73 @@ export const mockApi = {
     await delay()
     return [...db.auditLogs]
   },
+  // ---------- CETAK BIRU TEKNIS (BLUEPRINT) ----------
+  async listBlueprints(f: BlueprintFacets = {}): Promise<BlueprintSummary[]> {
+    await delay()
+    let list = blueprintsFull.map(toBlueprintSummary)
+    if (f.search) {
+      const q = f.search.toLowerCase()
+      list = list.filter(
+        (b) =>
+          b.title.toLowerCase().includes(q) ||
+          b.excerpt.toLowerCase().includes(q) ||
+          b.product.toLowerCase().includes(q) ||
+          b.tags.some((t) => t.includes(q)),
+      )
+    }
+    if (f.wasteKind) list = list.filter((b) => b.wasteKind === f.wasteKind)
+    if (f.product) list = list.filter((b) => slug(b.product) === f.product)
+    if (f.difficulty) list = list.filter((b) => b.difficulty === f.difficulty)
+    if (f.capitalTier) list = list.filter((b) => b.capitalTier === f.capitalTier)
+    if (f.maturity) list = list.filter((b) => b.maturity === f.maturity)
+
+    const order = { raw: 1, curated: 2, validated: 3, standard: 4 }
+    if (f.sort === 'maturity') list = [...list].sort((a, b) => order[b.maturity] - order[a.maturity])
+    else if (f.sort === 'capital') list = [...list].sort((a, b) => a.minCapital - b.minCapital)
+    else if (f.sort === 'newest') list = [...list].sort((a, b) => b.id - a.id)
+    else list = [...list].sort((a, b) => b.stats.saves - a.stats.saves) // popular (default)
+    return list
+  },
+
+  async getBlueprint(id: number): Promise<BlueprintFull> {
+    await delay()
+    const b = blueprintsFull.find((x) => x.id === id)
+    if (!b) throw new ApiError(404, 'Cetak biru tidak ditemukan.')
+    b.stats.views += 1
+    return { ...b }
+  },
+
+  async toggleBlueprintBookmark(id: number): Promise<{ bookmarked: boolean }> {
+    await delay(160)
+    const b = blueprintsFull.find((x) => x.id === id)
+    if (!b) throw new ApiError(404, 'Cetak biru tidak ditemukan.')
+    b.isBookmarked = !b.isBookmarked
+    b.stats.saves += b.isBookmarked ? 1 : -1
+    return { bookmarked: b.isBookmarked }
+  },
+
+  async addReplication(id: number, outcome: 'success' | 'partial' | 'fail'): Promise<BlueprintFull> {
+    await delay(260)
+    const b = blueprintsFull.find((x) => x.id === id)
+    if (!b) throw new ApiError(404, 'Cetak biru tidak ditemukan.')
+    b.replications[outcome] += 1
+    const total = b.replications.success + b.replications.partial + b.replications.fail
+    b.stats.replications = total
+    b.stats.successRate = total ? Math.round((b.replications.success / total) * 100) : 0
+    return { ...b }
+  },
+
+  async valueTree(): Promise<ValueNode[]> {
+    await delay(160)
+    return valueNodes.map((n) => {
+      let count = 0
+      if (n.type === 'root') count = blueprintsFull.length
+      else if (n.type === 'waste') count = blueprintsFull.filter((b) => b.wasteKind === n.slug).length
+      else count = blueprintsFull.filter((b) => slug(b.product) === n.slug).length
+      return { ...n, blueprintCount: count }
+    })
+  },
+
   async stats() {
     await delay(180)
     return {
@@ -376,6 +448,12 @@ export const mockApi = {
 function stripPassword(u: db.SeedUser): UserProfileDetail {
   const { password, status, created_at, ...rest } = u
   void password; void status; void created_at
+  return rest
+}
+function toBlueprintSummary(b: BlueprintFull): BlueprintSummary {
+  const { summary, materials, steps, quality, safety, economic, sources, isBookmarked, replications, variants, ...rest } = b
+  void summary; void materials; void steps; void quality; void safety
+  void economic; void sources; void isBookmarked; void replications; void variants
   return rest
 }
 function stripReplies(t: ForumTopicDetail): ForumTopic {

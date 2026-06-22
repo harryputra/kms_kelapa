@@ -1,5 +1,6 @@
 // Tipe domain COCONEXUS — selaras dengan skema OpenAPI (api_dokumen.md).
 // Saat backend & packages/shared siap, tipe ini dipindah ke paket bersama.
+export * from './blueprint'
 
 export type Role = 'guest' | 'user' | 'moderator' | 'admin'
 

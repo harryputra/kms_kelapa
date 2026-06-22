@@ -13,9 +13,10 @@ const mobileOpen = ref(false)
 
 const nav = [
   { label: 'Beranda', to: '/' },
-  { label: 'Artikel', to: '/articles' },
+  { label: 'Cetak Biru', to: '/cetak-biru' },
+  { label: 'Pohon Nilai', to: '/pohon-nilai' },
+  { label: 'Wawasan', to: '/articles' },
   { label: 'Forum', to: '/forum' },
-  { label: 'Tentang', to: '/tentang' },
 ]
 const isActive = (to: string) => (to === '/' ? route.path === '/' : route.path.startsWith(to))
 </script>
