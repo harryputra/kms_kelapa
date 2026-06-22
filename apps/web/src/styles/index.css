@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display text-ink;
+  }
+
+  /* Fokus terlihat jelas untuk navigasi keyboard (a11y) */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-500/70 ring-offset-2 ring-offset-canvas;
+  }
+
+  ::selection {
+    @apply bg-primary-200 text-primary-900;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* ---- Kartu premium: hairline border + shadow lembut ---- */
+  .premium-card {
+    @apply rounded-2xl border border-line bg-surface shadow-card transition-all duration-200;
+  }
+  .premium-card-hover {
+    @apply hover:-translate-y-0.5 hover:shadow-card-hover;
+  }
+
+  /* ---- Tombol ---- */
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-xl text-sm font-medium
+           transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-primary-600 text-white shadow-xs hover:bg-primary-700;
+  }
+  .btn-secondary {
+    @apply btn border border-primary-200 bg-white text-primary-700 hover:bg-primary-50;
+  }
+  .btn-ghost {
+    @apply btn text-muted hover:bg-line/60 hover:text-ink;
+  }
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-red-700;
+  }
+  .btn-sm { @apply h-8 px-3 text-[13px]; }
+  .btn-md { @apply h-10 px-4; }
+  .btn-lg { @apply h-12 px-6 text-base; }
+
+  /* ---- Input ---- */
+  .field {
+    @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink
+           placeholder:text-muted/70 transition-all duration-150
+           focus:border-primary-500 focus:shadow-focus-primary focus:outline-none;
+  }
+  .field-error {
+    @apply border-danger focus:border-danger focus:shadow-[0_0_0_3px_rgba(220,53,69,0.18)];
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink;
+  }
+
+  /* ---- Chip / badge ---- */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  /* ---- Aksen teks gradien (signature) ---- */
+  .text-gradient {
+    @apply bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700 bg-clip-text text-transparent;
+  }
+
+  /* ---- Mesh hero halus ---- */
+  .hero-mesh {
+    background:
+      radial-gradient(60% 60% at 15% 10%, rgba(64, 145, 108, 0.16) 0%, transparent 60%),
+      radial-gradient(50% 50% at 90% 0%, rgba(176, 125, 60, 0.12) 0%, transparent 55%),
+      radial-gradient(70% 70% at 80% 90%, rgba(27, 67, 50, 0.10) 0%, transparent 60%);
+  }
+
+  /* ---- Skeleton shimmer ---- */
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-line/70;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+
+  /* ---- Prose ringan untuk konten artikel ---- */
+  .prose-coco {
+    @apply text-[15.5px] leading-relaxed text-ink/90;
+  }
+  .prose-coco :where(h2) { @apply mt-7 mb-3 text-h2; }
+  .prose-coco :where(h3) { @apply mt-6 mb-2 text-h3; }
+  .prose-coco :where(p) { @apply mb-4; }
+  .prose-coco :where(ul) { @apply mb-4 list-disc space-y-1.5 pl-5; }
+  .prose-coco :where(ol) { @apply mb-4 list-decimal space-y-1.5 pl-5; }
+  .prose-coco :where(strong) { @apply font-semibold text-ink; }
+  .prose-coco :where(a) { @apply text-primary-600 underline decoration-primary-300 underline-offset-2 hover:text-primary-700; }
+  .prose-coco :where(blockquote) { @apply my-4 border-l-4 border-primary-200 bg-primary-50/50 py-2 pl-4 italic text-muted; }
+}
+
+@layer utilities {
+  .container-page {
+    @apply mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8;
+  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}

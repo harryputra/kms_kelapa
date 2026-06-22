@@ -1,0 +1,17 @@
+{
+  "name": "coconexus-kms",
+  "private": true,
+  "version": "2.0.0",
+  "description": "COCONEXUS KMS v2.0 — Platform Manajemen Pengetahuan Limbah Kelapa untuk UMKM",
+  "scripts": {
+    "dev": "pnpm --filter @coconexus/web dev",
+    "build": "pnpm --filter @coconexus/web build",
+    "preview": "pnpm --filter @coconexus/web preview",
+    "typecheck": "pnpm --filter @coconexus/web typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
