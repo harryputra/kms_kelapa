@@ -1,0 +1,236 @@
+// COCONEXUS — skema Prisma (slice fondasi: Auth + domain Cetak Biru).
+// Domain lain (artikel, komentar, forum, bursa, dst.) menyusul mengikuti
+// rencana_pengembangan.md Lampiran A.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id            Int                 @id @default(autoincrement())
+  email         String              @unique
+  password      String
+  roleId        Int                 @map("role_id")
+  role          Role                @relation(fields: [roleId], references: [id])
+  status        String              @default("active") // active|suspended|deleted
+  emailVerified Boolean             @default(true) @map("email_verified")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+  deletedAt     DateTime?           @map("deleted_at")
+  profile       UserProfile?
+  refreshTokens RefreshToken[]
+  blueprints    Blueprint[]
+  reports       ReplicationReport[]
+
+  @@index([roleId])
+  @@index([status])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model UserProfile {
+  id          Int     @id @default(autoincrement())
+  userId      Int     @unique @map("user_id")
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName String  @map("display_name")
+  bio         String? @db.Text
+  avatarPath  String? @map("avatar_path")
+  jobTitle    String? @map("job_title")
+  department  String?
+  division    String?
+
+  @@map("user_profiles")
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("categories")
+}
+
+// Ontologi Pohon Nilai (limbah → produk)
+model ValueNode {
+  id       Int         @id
+  parentId Int?        @map("parent_id")
+  parent   ValueNode?  @relation("tree", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children ValueNode[] @relation("tree")
+  type     String // root|waste|product
+  name     String
+  slug     String
+  icon     String
+
+  @@map("value_nodes")
+}
+
+model Blueprint {
+  id          Int                 @id @default(autoincrement())
+  title       String
+  slug        String              @unique
+  authorId    Int                 @map("author_id")
+  author      User                @relation(fields: [authorId], references: [id])
+  wasteKind   String              @map("waste_kind") // sabut|tempurung|air|ampas
+  wasteLabel  String              @map("waste_label")
+  product     String
+  excerpt     String              @db.Text
+  summary     String              @db.Text
+  status      String              @default("submitted") // draft|submitted|published|rejected
+  maturity    String              @default("raw") // raw|curated|validated|standard
+  difficulty  String // mudah|sedang|sulit
+  capitalTier String              @map("capital_tier") // rendah|menengah|tinggi
+  minCapital  Int                 @map("min_capital")
+  estTime     String              @map("est_time")
+  tags        Json
+  sources     Json
+  views       Int                 @default(0)
+  saves       Int                 @default(0)
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+  deletedAt   DateTime?           @map("deleted_at")
+  economic    EconomicModel?
+  materials   BlueprintMaterial[]
+  steps       BlueprintStep[]
+  quality     QualityParam[]
+  safety      SafetyNote[]
+  reports     ReplicationReport[]
+  versions    BlueprintVersion[]
+  variants    BlueprintVariant[]
+
+  @@index([wasteKind])
+  @@index([status])
+  @@index([maturity])
+  @@index([authorId])
+  @@map("blueprints")
+}
+
+model EconomicModel {
+  id             Int       @id @default(autoincrement())
+  blueprintId    Int       @unique @map("blueprint_id")
+  blueprint      Blueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  capital        Int
+  costPerBatch   Int       @map("cost_per_batch")
+  batchInputKg   Float     @map("batch_input_kg")
+  batchOutputKg  Float     @map("batch_output_kg")
+  sellPricePerKg Int       @map("sell_price_per_kg")
+
+  @@map("economic_models")
+}
+
+model BlueprintMaterial {
+  id          Int       @id @default(autoincrement())
+  blueprintId Int       @map("blueprint_id")
+  blueprint   Blueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  name        String
+  qty         String
+  tier        String // wajib|murah|mahal
+  price       Int       @default(0)
+  note        String?
+  sort        Int       @default(0)
+
+  @@index([blueprintId])
+  @@map("blueprint_materials")
+}
+
+model BlueprintStep {
+  id          Int       @id @default(autoincrement())
+  blueprintId Int       @map("blueprint_id")
+  blueprint   Blueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  order       Int
+  title       String
+  detail      String    @db.Text
+  duration    String?
+  temperature String?
+  dose        String?
+
+  @@index([blueprintId])
+  @@map("blueprint_steps")
+}
+
+model QualityParam {
+  id          Int       @id @default(autoincrement())
+  blueprintId Int       @map("blueprint_id")
+  blueprint   Blueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  name        String
+  target      String
+  method      String
+
+  @@index([blueprintId])
+  @@map("quality_params")
+}
+
+model SafetyNote {
+  id          Int       @id @default(autoincrement())
+  blueprintId Int       @map("blueprint_id")
+  blueprint   Blueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  risk        String
+  mitigation  String
+
+  @@index([blueprintId])
+  @@map("safety_notes")
+}
+
+model ReplicationReport {
+  id          Int       @id @default(autoincrement())
+  blueprintId Int       @map("blueprint_id")
+  blueprint   Blueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  userId      Int       @map("user_id")
+  user        User      @relation(fields: [userId], references: [id])
+  outcome     String // success|partial|fail
+  note        String    @db.Text
+  costReal    Int?      @map("cost_real")
+  photoSeed   String?   @map("photo_seed")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([blueprintId])
+  @@map("replication_reports")
+}
+
+model BlueprintVersion {
+  id          Int       @id @default(autoincrement())
+  blueprintId Int       @map("blueprint_id")
+  blueprint   Blueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  version     Int
+  changelog   String    @db.Text
+  authorName  String    @map("author_name")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([blueprintId])
+  @@map("blueprint_versions")
+}
+
+model BlueprintVariant {
+  id          Int       @id @default(autoincrement())
+  blueprintId Int       @map("blueprint_id")
+  blueprint   Blueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  region      String
+  title       String
+
+  @@map("blueprint_variants")
+}

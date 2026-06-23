@@ -1,0 +1,23 @@
+# Stack pendukung COCONEXUS. Untuk dev lokal cukup service `mysql`.
+# (Profil prod untuk api+web menyusul — lihat rencana_pengembangan.md §11.)
+services:
+  mysql:
+    image: mysql:8
+    container_name: coconexus-mysql
+    command: --innodb-buffer-pool-size=256M --max-connections=100
+    environment:
+      MYSQL_ROOT_PASSWORD: coconexus
+      MYSQL_DATABASE: coconexus
+    ports:
+      - "127.0.0.1:33062:3306" # hanya localhost; tidak diekspos publik
+    volumes:
+      - coconexus_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pcoconexus"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  coconexus_mysql:

@@ -5,9 +5,15 @@
   "description": "COCONEXUS KMS v2.0 — Platform Manajemen Pengetahuan Limbah Kelapa untuk UMKM",
   "scripts": {
     "dev": "pnpm --filter @coconexus/web dev",
-    "build": "pnpm --filter @coconexus/web build",
+    "dev:web": "pnpm --filter @coconexus/web dev",
+    "dev:api": "pnpm --filter @coconexus/api dev",
+    "build": "pnpm -r build",
     "preview": "pnpm --filter @coconexus/web preview",
-    "typecheck": "pnpm --filter @coconexus/web typecheck",
+    "typecheck": "pnpm -r typecheck",
+    "db:up": "docker compose -f infra/docker-compose.yml up -d mysql",
+    "db:down": "docker compose -f infra/docker-compose.yml down",
+    "db:push": "pnpm --filter @coconexus/api db:push",
+    "db:seed": "pnpm --filter @coconexus/api db:seed",
     "lint": "pnpm -r lint"
   },
   "engines": {

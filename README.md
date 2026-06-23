@@ -67,12 +67,28 @@ kms_kelapa/
 - **Admin:** dashboard + grafik, manajemen pengguna (ubah role/suspend), pengaturan sistem, menu manager, recycle bin, audit log.
 - **Lintas peran:** RBAC route guard, notifikasi (lonceng + halaman), toast, dark-ready tokens, state loading/empty/error, aksesibilitas dasar (WCAG AA).
 
+## 🖥️ Backend (API) — fondasi
+
+`apps/api` = Express + TypeScript + Prisma + MySQL (lihat `rencana_pengembangan.md`). Slice fondasi yang sudah jalan & teruji: **Auth** (register/login/refresh/logout/me, JWT + bcrypt + rate-limit) dan **Cetak Biru** (list faceted, detail, value-tree).
+
+```bash
+pnpm db:up                 # MySQL via Docker (127.0.0.1:33062)
+cp apps/api/.env.example apps/api/.env
+pnpm --filter @coconexus/api db:generate
+pnpm db:push               # buat tabel
+pnpm db:seed               # roles + akun demo + 4 cetak biru
+pnpm dev:api               # http://localhost:3000/api/v1
+# cek:
+curl http://localhost:3000/api/v1/health
+curl -X POST http://localhost:3000/api/v1/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"admin@coconexus.test","password":"Admin#1234"}'
+```
+
+Endpoint: `GET /health`, `POST /auth/{register,login,refresh,logout}`, `GET /auth/me`, `GET /blueprints`, `GET /blueprints/:id`, `GET /value-tree`. Envelope `{data, meta}` / error `{error:{code,message,details}}`.
+
 ## 🔌 Mock ↔ Backend nyata
 
-Frontend memanggil satu **facade** (`src/api/index.ts`). Default memakai mock (`VITE_USE_MOCK=true`). Saat backend Express siap:
-
-1. set `VITE_USE_MOCK=false` dan `VITE_API_URL=/api` di `apps/web/.env`,
-2. implementasikan klien nyata memakai `src/api/http.ts` (axios sudah dikonfigurasi: base URL relatif `/api`, interceptor, normalisasi error).
+Frontend memanggil satu **facade** (`src/api/index.ts`). Default memakai mock (`VITE_USE_MOCK=true`). Saat seluruh endpoint backend siap, set `VITE_USE_MOCK=false` + `VITE_API_URL=/api` di `apps/web/.env` dan pakai `src/api/http.ts` (axios: base URL relatif `/api`, interceptor, normalisasi error).
 
 > Base URL **selalu relatif** (`import.meta.env.VITE_API_URL ?? '/api'`) — tidak ada hardcode `localhost`, siap di belakang reverse proxy/Cloudflare.
 
