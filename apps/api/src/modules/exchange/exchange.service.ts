@@ -3,9 +3,11 @@ import { prisma } from '../../prisma.js'
 import { ApiError } from '../../lib/http.js'
 import { toAuthor, userInclude } from '../../lib/dto.js'
 
+// x/y persen hasil proyeksi equirectangular (selaras peta siluet di frontend:
+// x=(lng-94.5)/47*100, y=(6.5-lat)/18*100).
 export const regionGeo: Record<string, { x: number; y: number }> = {
-  'Sumatera Utara': { x: 16, y: 26 }, Riau: { x: 23, y: 40 }, 'Jawa Barat': { x: 38, y: 68 },
-  'Jawa Timur': { x: 50, y: 72 }, Bali: { x: 57, y: 76 }, 'Kalimantan Timur': { x: 56, y: 38 }, 'Sulawesi Selatan': { x: 67, y: 58 },
+  'Sumatera Utara': { x: 9.6, y: 23.3 }, Riau: { x: 15.3, y: 33.3 }, 'Jawa Barat': { x: 27.9, y: 74.4 },
+  'Jawa Timur': { x: 38.3, y: 79.4 }, Bali: { x: 43.8, y: 82.8 }, 'Kalimantan Timur': { x: 46.8, y: 33.3 }, 'Sulawesi Selatan': { x: 54.0, y: 57.2 },
 }
 
 const mapListing = (l: Prisma.WasteListingGetPayload<{ include: { user: typeof userInclude } }>) => ({

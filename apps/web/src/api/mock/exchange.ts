@@ -5,15 +5,15 @@ import { pub } from './data'
 const dAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString()
 const hAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString()
 
-// Posisi normalisasi (0..100) untuk peta abstrak — menyebar Barat→Timur Indonesia.
-export const regionGeo: Record<string, { x: number; y: number }> = {
-  'Sumatera Utara': { x: 16, y: 26 },
-  Riau: { x: 23, y: 40 },
-  'Jawa Barat': { x: 38, y: 68 },
-  'Jawa Timur': { x: 50, y: 72 },
-  Bali: { x: 57, y: 76 },
-  'Kalimantan Timur': { x: 56, y: 38 },
-  'Sulawesi Selatan': { x: 67, y: 58 },
+// Koordinat geografis (lng, lat) tiap wilayah — diproyeksikan ke peta siluet Indonesia.
+export const regionGeo: Record<string, { lng: number; lat: number }> = {
+  'Sumatera Utara': { lng: 99.0, lat: 2.3 },
+  Riau: { lng: 101.7, lat: 0.5 },
+  'Jawa Barat': { lng: 107.6, lat: -6.9 },
+  'Jawa Timur': { lng: 112.5, lat: -7.8 },
+  Bali: { lng: 115.1, lat: -8.4 },
+  'Kalimantan Timur': { lng: 116.5, lat: 0.5 },
+  'Sulawesi Selatan': { lng: 119.9, lat: -3.8 },
 }
 
 export const listings: WasteListing[] = [

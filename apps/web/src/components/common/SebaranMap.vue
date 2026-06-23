@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { MapPin } from 'lucide-vue-next'
 import type { RegionStat } from '@/types'
+import { INDONESIA_PATH, INDONESIA_VIEWBOX } from '@/lib/indonesiaMap'
 
 defineProps<{ regions: RegionStat[]; selected: string }>()
 const emit = defineEmits<{ select: [region: string] }>()
@@ -13,10 +14,15 @@ const emit = defineEmits<{ select: [region: string] }>()
       <button v-if="selected" class="text-xs font-medium text-primary-600 hover:underline" @click="emit('select', '')">Tampilkan semua</button>
     </div>
 
-    <div class="relative aspect-[16/8] w-full overflow-hidden rounded-xl bg-gradient-to-br from-primary-50 to-canvas">
-      <!-- grid halus -->
-      <div class="absolute inset-0 opacity-40" style="background-image: radial-gradient(circle, rgba(45,106,79,0.18) 1px, transparent 1.5px); background-size: 26px 26px" />
-      <span class="absolute left-3 top-2 text-[11px] font-medium uppercase tracking-wider text-primary-700/50">Indonesia</span>
+    <div class="relative w-full overflow-hidden rounded-xl bg-gradient-to-br from-primary-50 to-canvas" style="aspect-ratio: 1000 / 383">
+      <!-- grid laut halus -->
+      <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(circle, rgba(45,106,79,0.14) 1px, transparent 1.5px); background-size: 24px 24px" />
+
+      <!-- siluet Indonesia -->
+      <svg class="absolute inset-0 h-full w-full" :viewBox="INDONESIA_VIEWBOX" preserveAspectRatio="none" aria-hidden="true">
+        <path :d="INDONESIA_PATH" fill="rgba(45,106,79,0.16)" stroke="rgba(45,106,79,0.45)" stroke-width="1.2" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
+      </svg>
+      <span class="absolute left-3 top-2 text-[11px] font-medium uppercase tracking-wider text-primary-700/60">Indonesia</span>
 
       <!-- pin per wilayah -->
       <button

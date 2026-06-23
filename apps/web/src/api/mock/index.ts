@@ -48,6 +48,7 @@ import { blueprintsFull, valueNodes } from './blueprints'
 import { questions, reportsByBlueprint } from './community'
 import { directory, listings, regionGeo } from './exchange'
 import { MARKETING } from './marketing'
+import { projectPct } from '@/lib/indonesiaMap'
 import { DIFFICULTY, MATURITY, WASTE, computeEconomics, formatRupiah } from '@/lib/blueprint'
 
 const delay = (ms = 320) => new Promise((r) => setTimeout(r, ms))
@@ -694,13 +695,16 @@ export const mockApi = {
 
   async regionStats(): Promise<RegionStat[]> {
     await delay(160)
-    return Object.entries(regionGeo).map(([region, geo]) => ({
-      region,
-      listings: listings.filter((l) => l.region === region).length,
-      umkm: directory.filter((d) => d.region === region).length,
-      x: geo.x,
-      y: geo.y,
-    }))
+    return Object.entries(regionGeo).map(([region, geo]) => {
+      const { x, y } = projectPct(geo.lng, geo.lat)
+      return {
+        region,
+        listings: listings.filter((l) => l.region === region).length,
+        umkm: directory.filter((d) => d.region === region).length,
+        x,
+        y,
+      }
+    })
   },
 
   // ---------- ASISTEN AI "Tanya COCO" (RAG ter-grounding ke repositori) ----------
