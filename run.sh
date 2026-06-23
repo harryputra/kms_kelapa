@@ -66,16 +66,41 @@ summary_dev(){
   printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n\n"
 }
 
+summary_mock(){
+  echo ""; printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n"
+  printf "  ${C_G}COCONEXUS — DEV MOCK (semua data, TANPA backend)${C_N}\n"
+  printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n"
+  echo "  Web : http://localhost:${WEB_PORT}"
+  echo ""
+  printf "  ${C_B}Quick Login (tombol di /login):${C_N} Admin / Moderator / Pengguna"
+  echo ""; printf "  ${C_D}Butuh database nyata? → ./run.sh full   |   Produksi → ./run.sh deploy${C_N}\n"
+  printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n\n"
+}
+
+# DEFAULT: mock (web saja, semua data, tanpa Docker/API) — paling andal.
 cmd_up(){
-  check_prereq; ensure_env
+  command -v node >/dev/null 2>&1 || { err "Node.js 20+ diperlukan."; exit 1; }
+  command -v pnpm >/dev/null 2>&1 || corepack enable >/dev/null 2>&1 || { err "Jalankan: npm i -g pnpm"; exit 1; }
+  [ -f apps/web/.env ] || cp apps/web/.env.example apps/web/.env
+  rm -f apps/web/.env.local   # pastikan mode MOCK (cegah jebakan real tanpa API)
   if port_in_use "$WEB_PORT"; then warn "Port ${WEB_PORT} dipakai — mungkin app sudah jalan. Ganti: PORT=5174 ./run.sh"; exit 1; fi
+  info "Memasang dependensi…"; pnpm install
+  summary_mock
+  info "Menjalankan Web (mode MOCK)…"
+  PORT="$WEB_PORT" pnpm --filter @coconexus/web dev -- --port "$WEB_PORT"
+}
+
+# FULL: stack dev nyata (MySQL + API + Web). .env.local dibersihkan saat keluar.
+cmd_full(){
+  check_prereq; ensure_env
+  trap 'rm -f apps/web/.env.local' EXIT INT TERM
+  if port_in_use "$WEB_PORT"; then warn "Port ${WEB_PORT} dipakai. Ganti: PORT=5174 ./run.sh full"; exit 1; fi
   $COMPOSE up -d mysql; wait_mysql
   info "Memasang dependensi…"; pnpm install
   api_db_setup
-  # Web dev memakai backend nyata (override gitignored)
   printf "VITE_USE_MOCK=false\nVITE_API_URL=/api/v1\n" > apps/web/.env.local
   summary_dev
-  info "Menjalankan API + Web (dev)…"
+  info "Menjalankan API + Web (dev, backend nyata)…"
   PORT="$WEB_PORT" pnpm -r --parallel run dev
 }
 
@@ -102,6 +127,7 @@ cmd_deploy(){
 
 case "${1:-up}" in
   up|"")        cmd_up ;;
+  full|dev-full) cmd_full ;;
   deploy|prod)  cmd_deploy ;;
   prod-logs)    $COMPOSE --profile prod logs -f ;;
   prod-down)    $COMPOSE --profile prod down ;;
@@ -126,7 +152,8 @@ COCONEXUS — runner
 
 Penggunaan: ./run.sh [perintah]
 
-  (kosong)|up   DEV: MySQL(Docker) + API + Web (backend nyata) [default]
+  (kosong)|up   DEV MOCK: Web saja, semua data, tanpa backend [default, paling andal]
+  full          DEV NYATA: MySQL(Docker) + API + Web (backend asli)
   deploy|prod   PRODUKSI: semua container, detached + auto-restart
   prod-logs     Lihat log produksi (Ctrl+C keluar, app tetap jalan)
   prod-down     Hentikan stack produksi

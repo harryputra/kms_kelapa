@@ -2,26 +2,23 @@
 
 Platform manajemen pengetahuan pengelolaan **limbah buah kelapa** untuk UMKM agroindustri Indonesia. Repositori dua arah (pakar + UMKM) dengan alur submission→review, interaksi sosial, forum, notifikasi, gamifikasi, dan panel admin.
 
-> **Tahap saat ini:** Frontend (Vue 3 + TypeScript) lengkap dengan **mock API in-memory** — bisa dijalankan & didemokan **tanpa backend**. Backend (Express + Prisma + MySQL) menyusul; lihat [`rencana_pengembangan.md`](rencana_pengembangan.md).
+> **Status:** Frontend (Vue 3 + TS) **dan** backend (Express + Prisma + MySQL) lengkap. Frontend bisa jalan dua mode: **mock** (default, semua data, tanpa backend) atau **nyata** (ke API + MySQL).
 
 ---
 
-## 🚀 Menjalankan (sekali klik)
+## 🚀 Cara menjalankan (3 mode)
 
-```bash
-# Linux / macOS / Git Bash
-./run.sh
+| Mode | Perintah | Kebutuhan | Untuk |
+|---|---|---|---|
+| **Mock** (default) | `./run.sh` / `run.bat` | hanya Node | **Eksplorasi alur** — semua menu & data jalan, tanpa Docker/DB |
+| **Dev nyata** | `./run.sh full` / `run.bat full` | + Docker | Develop ke backend asli (MySQL+API+Web, hot-reload) |
+| **Produksi** | `./run.sh deploy` / `run.bat deploy` | + Docker | Deploy container persisten (`localhost:8090`) |
 
-# Windows
-run.bat
-```
+> Mode **mock** paling andal untuk memahami sistem: buka `http://localhost:5173`, klik **Quick Login**, semua fitur & data tersedia. **Tidak perlu backend.**
+>
+> ⚠️ Jangan jalankan `pnpm dev` dalam mode nyata (`VITE_USE_MOCK=false`) tanpa API hidup → akan muncul `ECONNREFUSED /api/v1`. Pakai `./run.sh full` (otomatis menghidupkan API).
 
-Atau manual:
-
-```bash
-pnpm install
-pnpm dev          # http://localhost:5173
-```
+Manual (mock): `pnpm install && pnpm dev` → http://localhost:5173
 
 ### 🔑 Quick Login (akun demo)
 

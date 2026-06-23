@@ -15,6 +15,7 @@ set "CMD=%~1"
 if "%CMD%"=="" set "CMD=up"
 
 if /i "%CMD%"=="up"           goto :up
+if /i "%CMD%"=="full"         goto :full
 if /i "%CMD%"=="deploy"       goto :deploy
 if /i "%CMD%"=="prod"         goto :deploy
 if /i "%CMD%"=="prod-logs"    goto :prodlogs
@@ -52,6 +53,24 @@ echo [X] MySQL tidak kunjung siap.
 goto :end
 
 :up
+where node >nul 2>nul || (echo [X] Node.js 20+ diperlukan. & goto :end)
+where pnpm >nul 2>nul || call corepack enable >nul 2>nul
+if not exist "apps\web\.env" copy "apps\web\.env.example" "apps\web\.env" >nul
+if exist "apps\web\.env.local" del /q "apps\web\.env.local"
+echo [>] Memasang dependensi...
+call pnpm install || goto :end
+echo.
+echo ============================================================
+echo   COCONEXUS - DEV MOCK (semua data, TANPA backend)
+echo   Web : http://localhost:%PORT%
+echo   Quick Login: tombol di /login (Admin/Moderator/Pengguna)
+echo   Butuh DB nyata? run.bat full   Produksi? run.bat deploy
+echo ============================================================
+echo.
+call pnpm --filter @coconexus/web dev -- --port %PORT%
+goto :end
+
+:full
 call :checkprereq
 call :ensureenv
 %COMPOSE% up -d mysql
@@ -66,10 +85,10 @@ call pnpm --filter @coconexus/api db:seed || goto :end
 >> "apps\web\.env.local" echo VITE_API_URL=/api/v1
 echo.
 echo ============================================================
-echo   COCONEXUS - DEV (backend nyata)
+echo   COCONEXUS - DEV NYATA (MySQL + API + Web)
 echo   Web : http://localhost:%PORT%   API : http://localhost:3000/api/v1
 echo   Quick Login: admin@coconexus.test / Admin#1234
-echo   Stop: Ctrl+C
+echo   Stop: Ctrl+C  (lalu: run.bat clean  untuk hapus .env.local)
 echo ============================================================
 echo.
 call pnpm -r --parallel run dev
@@ -139,7 +158,8 @@ goto :end
 echo.
 echo COCONEXUS - runner
 echo.
-echo   (kosong)^|up   DEV: MySQL(Docker) + API + Web (default)
+echo   (kosong)^|up   DEV MOCK: Web saja, semua data, tanpa backend [default]
+echo   full          DEV NYATA: MySQL + API + Web
 echo   deploy^|prod   PRODUKSI: semua container, detached + auto-restart
 echo   prod-logs     Lihat log produksi
 echo   prod-down     Hentikan produksi
