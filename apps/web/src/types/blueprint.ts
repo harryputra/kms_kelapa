@@ -3,6 +3,7 @@
 import type { UserProfile } from './index'
 
 export type Maturity = 'raw' | 'curated' | 'validated' | 'standard'
+export type BlueprintStatus = 'draft' | 'submitted' | 'published' | 'rejected'
 export type Difficulty = 'mudah' | 'sedang' | 'sulit'
 export type CapitalTier = 'rendah' | 'menengah' | 'tinggi'
 export type WasteKind = 'sabut' | 'tempurung' | 'air' | 'ampas'
@@ -82,6 +83,7 @@ export interface BlueprintSummary {
   wasteLabel: string
   product: string
   excerpt: string
+  status: BlueprintStatus
   maturity: Maturity
   difficulty: Difficulty
   capitalTier: CapitalTier
@@ -89,6 +91,25 @@ export interface BlueprintSummary {
   estTime: string
   tags: string[]
   stats: BlueprintStats
+}
+
+export interface BlueprintCreateInput {
+  title: string
+  excerpt: string
+  summary: string
+  wasteKind: WasteKind
+  wasteLabel: string
+  product: string
+  difficulty: Difficulty
+  capitalTier: CapitalTier
+  estTime: string
+  tags: string[]
+  materials: BlueprintMaterial[]
+  steps: BlueprintStep[]
+  quality: QualityParam[]
+  safety: SafetyNote[]
+  economic: EconomicModel
+  sources: string[]
 }
 
 export interface BlueprintFull extends BlueprintSummary {

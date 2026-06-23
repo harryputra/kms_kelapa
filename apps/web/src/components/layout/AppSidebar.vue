@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import {
-  LayoutDashboard, FileText, PenSquare, Bookmark, Bell, User,
-  ClipboardCheck, LayoutTemplate, MessageSquareWarning, Flag,
+  LayoutDashboard, FileText, PenSquare, Bookmark, Bell, User, Wrench,
+  ClipboardCheck, LayoutTemplate, MessageSquareWarning, Flag, Stamp,
   Users, Settings, ListTree, Trash2, ScrollText, ShieldCheck, Gavel,
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
@@ -17,8 +17,9 @@ interface Item { label: string; to: string; icon: unknown; badge?: () => number 
 
 const userGroup = computed<Item[]>(() => [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { label: 'Artikel Saya', to: '/dashboard/articles', icon: FileText },
-  { label: 'Tulis Artikel', to: '/dashboard/submit', icon: PenSquare },
+  { label: 'Cetak Biru Saya', to: '/dashboard/cetak-biru', icon: Wrench },
+  { label: 'Tulis Cetak Biru', to: '/dashboard/cetak-biru/baru', icon: PenSquare },
+  { label: 'Wawasan Saya', to: '/dashboard/articles', icon: FileText },
   { label: 'Bacaan Saya', to: '/dashboard/bookmarks', icon: Bookmark },
   { label: 'Notifikasi', to: '/dashboard/notifications', icon: Bell, badge: () => notif.unreadCount || undefined },
   { label: 'Profil', to: '/dashboard/profile', icon: User },
@@ -26,6 +27,7 @@ const userGroup = computed<Item[]>(() => [
 
 const modGroup: Item[] = [
   { label: 'Dashboard Moderator', to: '/moderator', icon: Gavel },
+  { label: 'Kurasi Cetak Biru', to: '/moderator/cetak-biru', icon: Stamp },
   { label: 'Antrean Review', to: '/moderator/review', icon: ClipboardCheck },
   { label: 'Template', to: '/moderator/templates', icon: LayoutTemplate },
   { label: 'Moderasi Komentar', to: '/moderator/comments', icon: MessageSquareWarning },

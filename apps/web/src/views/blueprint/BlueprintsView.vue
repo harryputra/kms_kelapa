@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { Search, SlidersHorizontal, X, Network, FileSearch } from 'lucide-vue-next'
+import { Search, SlidersHorizontal, X, Network, FileSearch, PenSquare } from 'lucide-vue-next'
 import { useDebounceFn } from '@vueuse/core'
 import { api } from '@/api'
+import { useAuthStore } from '@/stores/auth'
 import type { BlueprintSummary, CapitalTier, Difficulty, Maturity, WasteKind } from '@/types'
 import { CAPITAL, DIFFICULTY, MATURITY, WASTE } from '@/lib/blueprint'
 import BlueprintCard from '@/components/common/BlueprintCard.vue'
@@ -12,6 +13,7 @@ import EmptyState from '@/components/ui/EmptyState.vue'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 
 const list = ref<BlueprintSummary[]>([])
 const loading = ref(true)
@@ -91,7 +93,10 @@ onMounted(load)
           Resep teknis terstruktur — bahan, langkah, mutu, K3, dan hitungan ekonomi — siap direplikasi & diskalakan UMKM.
         </p>
       </div>
-      <RouterLink to="/pohon-nilai" class="btn-secondary btn-md"><Network class="h-4 w-4" /> Jelajah Pohon Nilai</RouterLink>
+      <div class="flex items-center gap-2">
+        <RouterLink to="/pohon-nilai" class="btn-secondary btn-md"><Network class="h-4 w-4" /> Pohon Nilai</RouterLink>
+        <RouterLink v-if="auth.isAuthenticated" to="/dashboard/cetak-biru/baru" class="btn-primary btn-md"><PenSquare class="h-4 w-4" /> Tulis Cetak Biru</RouterLink>
+      </div>
     </div>
 
     <!-- Search + sort -->

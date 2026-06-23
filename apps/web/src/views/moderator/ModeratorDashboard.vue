@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { ClipboardCheck, MessageSquareWarning, Flag, CheckCircle2, ArrowRight } from 'lucide-vue-next'
+import { ClipboardCheck, MessageSquareWarning, Flag, Stamp, ArrowRight } from 'lucide-vue-next'
 import { api } from '@/api'
-import type { ArticleSummary, Comment, ReportItem } from '@/types'
+import type { ArticleSummary, BlueprintSummary, Comment, ReportItem } from '@/types'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatCard from '@/components/ui/StatCard.vue'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
@@ -13,13 +13,15 @@ import { relativeTime } from '@/lib/format'
 const queue = ref<ArticleSummary[]>([])
 const comments = ref<Comment[]>([])
 const reports = ref<ReportItem[]>([])
+const bpQueue = ref<BlueprintSummary[]>([])
 const loading = ref(true)
 
 onMounted(async () => {
-  const [q, c, r] = await Promise.all([api.reviewQueue(), api.pendingComments(), api.reports()])
+  const [q, c, r, bp] = await Promise.all([api.reviewQueue(), api.pendingComments(), api.reports(), api.submittedBlueprints()])
   queue.value = q
   comments.value = c
   reports.value = r
+  bpQueue.value = bp
   loading.value = false
 })
 </script>
@@ -31,10 +33,10 @@ onMounted(async () => {
     <LoadingBlock v-if="loading" />
     <template v-else>
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Kurasi Cetak Biru" :value="bpQueue.length" :icon="Stamp" tone="primary" />
         <StatCard label="Menunggu Review" :value="queue.length" :icon="ClipboardCheck" tone="info" />
         <StatCard label="Komentar Pending" :value="comments.length" :icon="MessageSquareWarning" tone="gold" />
-        <StatCard label="Laporan Terbuka" :value="reports.length" :icon="Flag" tone="primary" />
-        <StatCard label="Disetujui (bulan ini)" :value="24" :icon="CheckCircle2" tone="success" />
+        <StatCard label="Laporan Terbuka" :value="reports.length" :icon="Flag" tone="danger" />
       </div>
 
       <div class="mt-6 grid gap-6 lg:grid-cols-2">

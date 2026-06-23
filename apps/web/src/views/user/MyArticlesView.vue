@@ -34,9 +34,9 @@ onMounted(async () => {
 
 <template>
   <div>
-    <PageHeader title="Artikel Saya" subtitle="Kelola tulisan & pantau status review Anda.">
+    <PageHeader title="Wawasan Saya" subtitle="Kelola tulisan naratif & pantau status review Anda.">
       <template #actions>
-        <RouterLink to="/dashboard/submit" class="btn-primary btn-md"><PenSquare class="h-4 w-4" /> Tulis Artikel</RouterLink>
+        <RouterLink to="/dashboard/submit" class="btn-primary btn-md"><PenSquare class="h-4 w-4" /> Tulis Wawasan</RouterLink>
       </template>
     </PageHeader>
 

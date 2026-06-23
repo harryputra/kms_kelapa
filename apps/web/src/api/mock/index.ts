@@ -8,6 +8,7 @@ import type {
   ArticleSummary,
   AuditLog,
   AuthResult,
+  BlueprintCreateInput,
   BlueprintFacets,
   BlueprintFull,
   BlueprintSummary,
@@ -363,7 +364,7 @@ export const mockApi = {
   // ---------- CETAK BIRU TEKNIS (BLUEPRINT) ----------
   async listBlueprints(f: BlueprintFacets = {}): Promise<BlueprintSummary[]> {
     await delay()
-    let list = blueprintsFull.map(toBlueprintSummary)
+    let list = blueprintsFull.filter((b) => b.status === 'published').map(toBlueprintSummary)
     if (f.search) {
       const q = f.search.toLowerCase()
       list = list.filter(
@@ -418,13 +419,79 @@ export const mockApi = {
 
   async valueTree(): Promise<ValueNode[]> {
     await delay(160)
+    const pub = blueprintsFull.filter((b) => b.status === 'published')
     return valueNodes.map((n) => {
       let count = 0
-      if (n.type === 'root') count = blueprintsFull.length
-      else if (n.type === 'waste') count = blueprintsFull.filter((b) => b.wasteKind === n.slug).length
-      else count = blueprintsFull.filter((b) => slug(b.product) === n.slug).length
+      if (n.type === 'root') count = pub.length
+      else if (n.type === 'waste') count = pub.filter((b) => b.wasteKind === n.slug).length
+      else count = pub.filter((b) => slug(b.product) === n.slug).length
       return { ...n, blueprintCount: count }
     })
+  },
+
+  // ---- Kontribusi & kurasi Cetak Biru ----
+  async myBlueprints(): Promise<BlueprintSummary[]> {
+    await delay()
+    return blueprintsFull.filter((b) => b.author.id === currentUserId).map(toBlueprintSummary)
+  },
+
+  async myBlueprintBookmarks(): Promise<BlueprintSummary[]> {
+    await delay()
+    return blueprintsFull.filter((b) => b.isBookmarked && b.status === 'published').map(toBlueprintSummary)
+  },
+
+  async submitBlueprint(input: BlueprintCreateInput): Promise<BlueprintFull> {
+    await delay(500)
+    if (!currentUserId) throw new ApiError(401, 'Anda harus login.')
+    const author = db.users.find((u) => u.id === currentUserId)!
+    const id = Math.max(...blueprintsFull.map((b) => b.id)) + 1
+    const created: BlueprintFull = {
+      id,
+      title: input.title,
+      slug: slug(input.title),
+      author: db.pub(author.id),
+      wasteKind: input.wasteKind,
+      wasteLabel: input.wasteLabel,
+      product: input.product,
+      excerpt: input.excerpt,
+      status: 'submitted',
+      maturity: 'raw',
+      difficulty: input.difficulty,
+      capitalTier: input.capitalTier,
+      minCapital: input.economic.capital,
+      estTime: input.estTime,
+      tags: input.tags,
+      summary: input.summary,
+      materials: input.materials,
+      steps: input.steps,
+      quality: input.quality,
+      safety: input.safety,
+      economic: input.economic,
+      sources: input.sources,
+      isBookmarked: false,
+      replications: { success: 0, partial: 0, fail: 0 },
+      variants: [],
+      stats: { views: 0, saves: 0, replications: 0, successRate: 0 },
+    }
+    blueprintsFull.unshift(created)
+    return created
+  },
+
+  async submittedBlueprints(): Promise<BlueprintSummary[]> {
+    await delay()
+    return blueprintsFull.filter((b) => b.status === 'submitted').map(toBlueprintSummary)
+  },
+
+  async curateBlueprint(id: number, action: 'approve' | 'reject'): Promise<void> {
+    await delay(280)
+    const b = blueprintsFull.find((x) => x.id === id)
+    if (!b) throw new ApiError(404, 'Cetak biru tidak ditemukan.')
+    if (action === 'approve') {
+      b.status = 'published'
+      b.maturity = 'curated'
+    } else {
+      b.status = 'rejected'
+    }
   },
 
   async stats() {

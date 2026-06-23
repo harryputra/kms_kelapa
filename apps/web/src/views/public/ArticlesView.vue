@@ -95,11 +95,11 @@ onMounted(async () => {
   <div class="container-page py-10">
     <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="text-h1">Artikel Pengetahuan</h1>
-        <p class="mt-1 text-muted">Temukan teknik & praktik pengolahan limbah kelapa.</p>
+        <h1 class="text-h1">Wawasan & Cerita</h1>
+        <p class="mt-1 text-muted">Pengalaman, studi kasus, dan tren seputar pengolahan limbah kelapa.</p>
       </div>
       <RouterLink v-if="auth.isAuthenticated" to="/dashboard/submit" class="btn-primary btn-md">
-        <PenSquare class="h-4 w-4" /> Tulis Artikel
+        <PenSquare class="h-4 w-4" /> Tulis Wawasan
       </RouterLink>
     </div>
 

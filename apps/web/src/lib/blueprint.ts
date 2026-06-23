@@ -1,4 +1,11 @@
-import type { CapitalTier, Difficulty, EconomicModel, Maturity, WasteKind } from '@/types'
+import type { BlueprintStatus, CapitalTier, Difficulty, EconomicModel, Maturity, WasteKind } from '@/types'
+
+export const BLUEPRINT_STATUS: Record<BlueprintStatus, { label: string; chip: string }> = {
+  draft: { label: 'Draft', chip: 'bg-line text-muted' },
+  submitted: { label: 'Menunggu Kurasi', chip: 'bg-info/10 text-info' },
+  published: { label: 'Terbit', chip: 'bg-success/10 text-success' },
+  rejected: { label: 'Ditolak', chip: 'bg-danger/10 text-danger' },
+}
 
 export function formatRupiah(n: number): string {
   return new Intl.NumberFormat('id-ID', {

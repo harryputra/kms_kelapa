@@ -4,7 +4,7 @@ defineProps<{
   value: string | number
   icon?: unknown
   trend?: string
-  tone?: 'primary' | 'gold' | 'success' | 'info'
+  tone?: 'primary' | 'gold' | 'success' | 'info' | 'danger'
 }>()
 
 const tones = {
@@ -12,6 +12,7 @@ const tones = {
   gold: 'bg-gold-100 text-gold-600',
   success: 'bg-success/10 text-success',
   info: 'bg-info/10 text-info',
+  danger: 'bg-danger/10 text-danger',
 }
 </script>
 

@@ -9,7 +9,7 @@ import {
 import { api, ApiError } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import type { BlueprintFull } from '@/types'
+import type { BlueprintFull, BlueprintSummary } from '@/types'
 import { CAPITAL, DIFFICULTY, WASTE, formatRupiah } from '@/lib/blueprint'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import ArticleCover from '@/components/ui/ArticleCover.vue'
@@ -19,6 +19,7 @@ import AppButton from '@/components/ui/AppButton.vue'
 import MaturityBadge from '@/components/common/MaturityBadge.vue'
 import MaturityMeter from '@/components/common/MaturityMeter.vue'
 import BlueprintCalculator from '@/components/common/BlueprintCalculator.vue'
+import BlueprintCard from '@/components/common/BlueprintCard.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,6 +27,7 @@ const auth = useAuthStore()
 const ui = useUiStore()
 
 const bp = ref<BlueprintFull | null>(null)
+const related = ref<BlueprintSummary[]>([])
 const loading = ref(true)
 const id = computed(() => Number(route.params.id))
 
@@ -52,6 +54,9 @@ async function load() {
   loading.value = true
   try {
     bp.value = await api.getBlueprint(id.value)
+    related.value = (await api.listBlueprints({ wasteKind: bp.value.wasteKind }))
+      .filter((x) => x.id !== id.value)
+      .slice(0, 3)
   } catch (e) {
     ui.error(e instanceof ApiError ? e.message : 'Gagal memuat.')
     router.replace('/cetak-biru')
@@ -277,6 +282,14 @@ onMounted(load)
         </div>
       </aside>
     </div>
+
+    <!-- Cetak biru terkait -->
+    <section v-if="bp && related.length" class="mt-12">
+      <h2 class="mb-5 text-h2">Cetak Biru Terkait</h2>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <BlueprintCard v-for="r in related" :key="r.id" :blueprint="r" />
+      </div>
+    </section>
 
     <!-- Modal "Sudah Saya Coba" -->
     <AppModal :open="replicateOpen" title="Laporkan Hasil Praktik" size="sm" @close="replicateOpen = false">

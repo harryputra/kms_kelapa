@@ -35,14 +35,17 @@ const routes: RouteRecordRaw[] = [
 
   // ---------- PENGGUNA ----------
   { path: '/dashboard', name: 'dashboard', component: () => import('@/views/user/DashboardView.vue'), meta: { layout: 'dashboard', requiresAuth: true, title: 'Dashboard' } },
-  { path: '/dashboard/articles', name: 'my-articles', component: () => import('@/views/user/MyArticlesView.vue'), meta: { layout: 'dashboard', requiresAuth: true, title: 'Artikel Saya' } },
-  { path: '/dashboard/submit', name: 'submit', component: () => import('@/views/user/SubmitArticleView.vue'), meta: { layout: 'dashboard', requiresAuth: true, title: 'Tulis Artikel' } },
+  { path: '/dashboard/cetak-biru', name: 'my-blueprints', component: () => import('@/views/blueprint/MyBlueprintsView.vue'), meta: { layout: 'dashboard', requiresAuth: true, title: 'Cetak Biru Saya' } },
+  { path: '/dashboard/cetak-biru/baru', name: 'blueprint-new', component: () => import('@/views/blueprint/BlueprintFormView.vue'), meta: { layout: 'dashboard', requiresAuth: true, title: 'Tulis Cetak Biru' } },
+  { path: '/dashboard/articles', name: 'my-articles', component: () => import('@/views/user/MyArticlesView.vue'), meta: { layout: 'dashboard', requiresAuth: true, title: 'Wawasan Saya' } },
+  { path: '/dashboard/submit', name: 'submit', component: () => import('@/views/user/SubmitArticleView.vue'), meta: { layout: 'dashboard', requiresAuth: true, title: 'Tulis Wawasan' } },
   { path: '/dashboard/bookmarks', name: 'bookmarks', component: () => import('@/views/user/BookmarksView.vue'), meta: { layout: 'dashboard', requiresAuth: true, title: 'Bacaan Saya' } },
   { path: '/dashboard/notifications', name: 'notifications', component: () => import('@/views/user/NotificationsView.vue'), meta: { layout: 'dashboard', requiresAuth: true, title: 'Notifikasi' } },
   { path: '/dashboard/profile', name: 'profile', component: () => import('@/views/user/ProfileView.vue'), meta: { layout: 'dashboard', requiresAuth: true, title: 'Profil' } },
 
   // ---------- MODERATOR ----------
   { path: '/moderator', name: 'mod-dashboard', component: () => import('@/views/moderator/ModeratorDashboard.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['moderator', 'admin'], title: 'Dashboard Moderator' } },
+  { path: '/moderator/cetak-biru', name: 'blueprint-curation', component: () => import('@/views/moderator/BlueprintCurationView.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['moderator', 'admin'], title: 'Kurasi Cetak Biru' } },
   { path: '/moderator/review', name: 'review-queue', component: () => import('@/views/moderator/ReviewQueueView.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['moderator', 'admin'], title: 'Antrean Review' } },
   { path: '/moderator/review/:id', name: 'review-detail', component: () => import('@/views/moderator/ReviewDetailView.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['moderator', 'admin'], title: 'Review Artikel' } },
   { path: '/moderator/templates', name: 'templates', component: () => import('@/views/moderator/TemplatesView.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['moderator', 'admin'], title: 'Template' } },

@@ -29,7 +29,7 @@ export const valueNodes: ValueNode[] = [
 const longSummary =
   'Cetak biru ini merangkum praktik lapangan terstruktur — bahan, langkah, parameter mutu, K3, hingga hitungan ekonomi — agar UMKM dapat mereplikasi dan menskalakan dengan percaya diri.'
 
-export const blueprintsFull: BlueprintFull[] = [
+const blueprintSeeds: Omit<BlueprintFull, 'status'>[] = [
   {
     id: 1, title: 'Briket Arang dari Tempurung Kelapa', slug: 'briket-arang-tempurung',
     author: pub(4), wasteKind: 'tempurung', wasteLabel: 'Tempurung', product: 'Briket',
@@ -259,3 +259,6 @@ export const blueprintsFull: BlueprintFull[] = [
     variants: [], stats: { views: 430, saves: 88, replications: 6, successRate: 83 },
   },
 ]
+
+// Seed selalu berstatus published; kontribusi baru akan berstatus submitted (menunggu kurasi).
+export const blueprintsFull: BlueprintFull[] = blueprintSeeds.map((b) => ({ ...b, status: 'published' as const }))
