@@ -8,10 +8,23 @@ import type {
   Category, QnaAnswer, QnaQuestion, ReplicationInput, ReplicationReport, UserProfileDetail, ValueNode,
 } from '@/types'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Unwrap envelope {data} + normalisasi error axios → ApiError (pesan ramah ID).
-async function req<T>(p: Promise<{ data: { data: T } }>): Promise<T> {
+// Return any: signature publik tetap dijaga ketat oleh `realApi: typeof mockApi`.
+async function req<T = any>(p: Promise<any>): Promise<T> {
   try {
     return (await p).data.data
+  } catch (e) {
+    const n = normalizeError(e)
+    throw new ApiError(n.status ?? 500, n.message)
+  }
+}
+
+// Untuk endpoint berpaginasi (mengembalikan {data, meta}).
+async function reqPaged(p: Promise<any>): Promise<any> {
+  try {
+    const r = await p
+    return { data: r.data.data, meta: r.data.meta }
   } catch (e) {
     const n = normalizeError(e)
     throw new ApiError(n.status ?? 500, n.message)
@@ -110,5 +123,139 @@ export const realApi: typeof mockApi = {
   },
   async markBestAnswer(_questionId, answerId) {
     await http.post(`/qna/answers/${answerId}/best`)
+  },
+
+  // ---------- WAWASAN / ARTIKEL ----------
+  async listPublished(params = {}) {
+    return reqPaged(http.get('/articles', { params: clean(params as Record<string, unknown>) }))
+  },
+  async getArticle(id, _isAuthenticated) {
+    return req(http.get(`/articles/${id}`))
+  },
+  async myArticles() {
+    return req(http.get('/articles/mine'))
+  },
+  async submitArticle(input) {
+    return req(http.post('/articles', input))
+  },
+  async vote(id, type) {
+    return req(http.post(`/articles/${id}/vote`, { vote_type: type }))
+  },
+  async toggleBookmark(id) {
+    return req(http.post(`/articles/${id}/bookmark`))
+  },
+  async myBookmarks() {
+    return req(http.get('/articles/bookmarks'))
+  },
+  async report(entityType, entityId, reason, description) {
+    if (entityType === 'article') return req(http.post(`/articles/${entityId}/report`, { reason, description }))
+    return { message: 'Laporan terkirim.' }
+  },
+  async getComments(articleId) {
+    return req(http.get(`/articles/${articleId}/comments`))
+  },
+  async addComment(articleId, content, parentId) {
+    return req(http.post(`/articles/${articleId}/comments`, { content, parent_id: parentId }))
+  },
+
+  // ---------- TEMPLATE & KATEGORI ----------
+  async templates() {
+    return req(http.get('/templates'))
+  },
+
+  // ---------- NOTIFIKASI ----------
+  async notifications() {
+    return req(http.get('/notifications'))
+  },
+  async markRead(id) {
+    await http.put(`/notifications/${id}/read`)
+  },
+  async markAllRead() {
+    await http.put('/notifications/read-all')
+  },
+
+  // ---------- FORUM ----------
+  async forumTopics() {
+    return req(http.get('/forum/topics'))
+  },
+  async forumTopic(id) {
+    return req(http.get(`/forum/topics/${id}`))
+  },
+  async addReply(topicId, content) {
+    return req(http.post(`/forum/topics/${topicId}/replies`, { content }))
+  },
+
+  // ---------- MODERATOR ----------
+  async reviewQueue() {
+    return req(http.get('/moderator/review-queue'))
+  },
+  async reviewArticle(id, action, notes) {
+    await http.put(`/moderator/articles/${id}/review`, { action, review_notes: notes })
+  },
+  async pendingComments() {
+    return req(http.get('/moderator/comments'))
+  },
+  async moderateComment(id, status) {
+    await http.put(`/moderator/comments/${id}/moderate`, { status })
+  },
+  async reports() {
+    return req(http.get('/moderator/reports'))
+  },
+  async resolveReport(id, resolution) {
+    await http.put(`/moderator/reports/${id}/resolve`, { resolution })
+  },
+
+  // ---------- ADMIN ----------
+  async adminUsers() {
+    return req(http.get('/admin/users'))
+  },
+  async changeRole(id, role) {
+    await http.put(`/admin/users/${id}/role`, { role })
+  },
+  async toggleSuspend(id) {
+    await http.put(`/admin/users/${id}/suspend`)
+  },
+  async getSettings() {
+    return req(http.get('/settings'))
+  },
+  async updateSettings(patch) {
+    return req(http.put('/admin/settings', patch))
+  },
+  async menu() {
+    return req(http.get('/admin/menu'))
+  },
+  async saveMenu(items) {
+    await http.put('/admin/menu', { items })
+  },
+  async recycleBin() {
+    return req(http.get('/admin/recycle-bin'))
+  },
+  async restore(id) {
+    await http.put(`/admin/recycle-bin/restore/${id}`)
+  },
+  async auditLogs() {
+    return req(http.get('/admin/audit-logs'))
+  },
+  async stats() {
+    return req(http.get('/admin/stats'))
+  },
+
+  // ---------- SIMBIOSIS ----------
+  async listListings(filter = {}) {
+    return req(http.get('/exchange/listings', { params: clean(filter as Record<string, unknown>) }))
+  },
+  async createListing(input) {
+    return req(http.post('/exchange/listings', input))
+  },
+  async listDirectory(filter = {}) {
+    return req(http.get('/exchange/directory', { params: clean(filter as Record<string, unknown>) }))
+  },
+  async regionStats() {
+    return req(http.get('/exchange/regions'))
+  },
+
+  // ---------- ASISTEN AI ----------
+  async askAssistant(question) {
+    return req(http.post('/assistant/ask', { question }))
   },
 }

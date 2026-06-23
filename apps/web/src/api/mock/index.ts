@@ -207,7 +207,7 @@ export const mockApi = {
     return db.articles.filter((a) => a.is_bookmarked && a.status === 'published').map(toSummary)
   },
 
-  async report(): Promise<{ message: string }> {
+  async report(_entityType: 'article' | 'comment', _entityId: number, _reason: string, _description?: string): Promise<{ message: string }> {
     await delay()
     return { message: 'Laporan terkirim. Tim moderator akan meninjau.' }
   },
@@ -324,7 +324,7 @@ export const mockApi = {
     await delay()
     return [...db.reports]
   },
-  async resolveReport(id: number): Promise<void> {
+  async resolveReport(id: number, _resolution?: 'ignore' | 'delete'): Promise<void> {
     await delay(160)
     const idx = db.reports.findIndex((r) => r.id === id)
     if (idx >= 0) db.reports.splice(idx, 1)

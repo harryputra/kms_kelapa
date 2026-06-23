@@ -89,7 +89,7 @@ async function submitComment() {
 }
 
 async function submitReport() {
-  await api.report()
+  await api.report('article', id.value, reportReason.value, reportDesc.value)
   reportOpen.value = false
   reportDesc.value = ''
   ui.success('Laporan terkirim. Terima kasih telah menjaga komunitas.')

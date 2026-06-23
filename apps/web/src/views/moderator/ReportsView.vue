@@ -27,7 +27,7 @@ onMounted(async () => {
 })
 
 async function resolve(id: number, action: 'ignore' | 'delete') {
-  await api.resolveReport(id)
+  await api.resolveReport(id, action)
   items.value = items.value.filter((r) => r.id !== id)
   ui.success(action === 'ignore' ? 'Laporan diabaikan.' : 'Konten dihapus & laporan diselesaikan.')
 }
