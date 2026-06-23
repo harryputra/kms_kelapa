@@ -3,9 +3,25 @@ import { nextTick, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Sparkles, Send, Bot, User, Loader2, ShieldCheck, Wallet, ArrowRight } from 'lucide-vue-next'
 import { api } from '@/api'
+import { useAuthStore } from '@/stores/auth'
 import type { BlueprintSummary } from '@/types'
 import { MATURITY, formatRupiah } from '@/lib/blueprint'
 import MaturityBadge from '@/components/common/MaturityBadge.vue'
+import GuestGate from '@/components/common/GuestGate.vue'
+
+const auth = useAuthStore()
+const GUEST = {
+  icon: Bot,
+  title: 'Tanya COCO — Asisten AI',
+  tagline: 'Tanya apa saja soal pengolahan limbah kelapa, dijawab dari repositori cetak biru tervalidasi — lengkap dengan sumber.',
+  benefits: [
+    'Rekomendasi produk sesuai modal & jenis limbah Anda',
+    'Jawaban ber-sitasi ke cetak biru teknis (anti-mengarang)',
+    'Saran langkah, parameter mutu, hingga hitung kelayakan',
+    'Siap membantu kapan saja, langsung dari repositori komunitas',
+  ],
+  preview: 'Contoh: "Modal 5 juta, produk apa yang cocok dari sabut kelapa?" → COCO memberi 3 rekomendasi + estimasi laba & BEP.',
+}
 
 interface Msg {
   role: 'user' | 'assistant'
@@ -50,7 +66,8 @@ async function send(text?: string) {
 </script>
 
 <template>
-  <div class="container-page py-8">
+  <GuestGate v-if="!auth.isAuthenticated" v-bind="GUEST" />
+  <div v-else class="container-page py-8">
     <div class="mx-auto flex h-[calc(100vh-9rem)] max-w-3xl flex-col">
       <!-- Header -->
       <div class="mb-3">

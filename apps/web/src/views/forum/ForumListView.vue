@@ -8,20 +8,39 @@ import type { ForumTopic } from '@/types'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import LoadingBlock from '@/components/ui/LoadingBlock.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import GuestGate from '@/components/common/GuestGate.vue'
 import { relativeTime } from '@/lib/format'
 
 const auth = useAuthStore()
 const topics = ref<ForumTopic[]>([])
 const loading = ref(true)
 
+const GUEST = {
+  icon: MessagesSquare,
+  title: 'Forum Diskusi',
+  tagline: 'Community of Practice pengolah limbah kelapa — bertanya, berbagi pengalaman lapangan, dan berdiskusi.',
+  benefits: [
+    'Mulai topik & balas diskusi komunitas',
+    'Belajar dari pengalaman nyata pelaku UMKM lain',
+    'Topik penting disematkan agar mudah ditemukan',
+    'Terhubung dengan calon mitra & mentor',
+  ],
+  preview: 'Diskusi aktif: pemasaran briket ekspor, menjaga EC cocopeat, hingga kemitraan bahan baku antar-daerah.',
+}
+
 onMounted(async () => {
+  if (!auth.isAuthenticated) {
+    loading.value = false
+    return
+  }
   topics.value = await api.forumTopics()
   loading.value = false
 })
 </script>
 
 <template>
-  <div class="container-page py-10">
+  <GuestGate v-if="!auth.isAuthenticated" v-bind="GUEST" />
+  <div v-else class="container-page py-10">
     <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h1 class="text-h1">Forum Diskusi</h1>

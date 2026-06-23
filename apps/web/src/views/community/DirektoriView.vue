@@ -11,8 +11,21 @@ import SebaranMap from '@/components/common/SebaranMap.vue'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import LoadingBlock from '@/components/ui/LoadingBlock.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import GuestGate from '@/components/common/GuestGate.vue'
 
 const auth = useAuthStore()
+const GUEST = {
+  icon: Users,
+  title: 'Direktori UMKM',
+  tagline: 'Peta sebaran pelaku usaha pengolah limbah kelapa se-Indonesia — temukan mitra, pemasok, dan pembeli.',
+  benefits: [
+    'Jelajahi UMKM per wilayah di peta sebaran',
+    'Lihat produk, kapasitas, & kontak langsung',
+    'Temukan calon mitra/mentor terverifikasi',
+    'Daftarkan usaha Anda agar ditemukan pembeli',
+  ],
+  preview: 'Mis. produsen cocopeat di Jawa Barat, briket di Jawa Timur, arang aktif di Sumatera Utara — lengkap dengan kapasitas & kontak.',
+}
 const entries = ref<UmkmDirectoryEntry[]>([])
 const regions = ref<RegionStat[]>([])
 const loading = ref(true)
@@ -31,13 +44,18 @@ const debouncedLoad = useDebounceFn(load, 300)
 watch(selected, load)
 
 onMounted(async () => {
+  if (!auth.isAuthenticated) {
+    loading.value = false
+    return
+  }
   regions.value = await api.regionStats()
   load()
 })
 </script>
 
 <template>
-  <div class="container-page py-10">
+  <GuestGate v-if="!auth.isAuthenticated" v-bind="GUEST" />
+  <div v-else class="container-page py-10">
     <PageHeader title="Direktori UMKM Kelapa" subtitle="Temukan mitra, pemasok, dan pembeli di seluruh sentra kelapa Indonesia." />
 
     <div class="mb-6">

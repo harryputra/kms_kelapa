@@ -10,6 +10,8 @@ import AppAvatar from '@/components/ui/AppAvatar.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
 import LoadingBlock from '@/components/ui/LoadingBlock.vue'
+import GuestGate from '@/components/common/GuestGate.vue'
+import { MessagesSquare } from 'lucide-vue-next'
 import { relativeTime } from '@/lib/format'
 
 const route = useRoute()
@@ -22,7 +24,23 @@ const reply = ref('')
 const posting = ref(false)
 const id = computed(() => Number(route.params.id))
 
+const GUEST = {
+  icon: MessagesSquare,
+  title: 'Forum Diskusi',
+  tagline: 'Masuk untuk membaca utuh & ikut berdiskusi dengan komunitas pengolah limbah kelapa.',
+  benefits: [
+    'Baca seluruh diskusi & balasan',
+    'Ikut berbalas dan berbagi pengalaman',
+    'Belajar dari pelaku UMKM lain',
+    'Terhubung dengan calon mitra & mentor',
+  ],
+}
+
 onMounted(async () => {
+  if (!auth.isAuthenticated) {
+    loading.value = false
+    return
+  }
   try {
     topic.value = await api.forumTopic(id.value)
   } finally {
@@ -61,7 +79,8 @@ function toggleLock() {
 </script>
 
 <template>
-  <div class="container-page py-8">
+  <GuestGate v-if="!auth.isAuthenticated" v-bind="GUEST" />
+  <div v-else class="container-page py-8">
     <RouterLink to="/forum" class="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-primary-600">
       <ArrowLeft class="h-4 w-4" /> Kembali ke forum
     </RouterLink>

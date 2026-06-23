@@ -16,8 +16,21 @@ import AppButton from '@/components/ui/AppButton.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
+import GuestGate from '@/components/common/GuestGate.vue'
 
 const auth = useAuthStore()
+const GUEST = {
+  icon: Repeat2,
+  title: 'Bursa Limbah',
+  tagline: 'Pasar pertukaran limbah & bahan baku kelapa — temukan surplus atau salurkan limbah Anda ke pengolah lain.',
+  benefits: [
+    'Pasang iklan surplus atau kebutuhan bahan baku',
+    'Temukan pemasok & pembeli per wilayah',
+    'Lihat kontak langsung pelaku usaha',
+    'Bangun rantai pasok antar-UMKM (simbiosis industri)',
+  ],
+  preview: 'Mis. surplus 500 kg sabut/minggu di Jawa Barat, atau kebutuhan tempurung kontinu untuk briket — saling dicocokkan di sini.',
+}
 const ui = useUiStore()
 const items = ref<WasteListing[]>([])
 const loading = ref(true)
@@ -70,13 +83,18 @@ async function submit() {
 }
 
 onMounted(async () => {
+  if (!auth.isAuthenticated) {
+    loading.value = false
+    return
+  }
   regions.value = (await api.regionStats()).map((r) => r.region)
   load()
 })
 </script>
 
 <template>
-  <div class="container-page py-10">
+  <GuestGate v-if="!auth.isAuthenticated" v-bind="GUEST" />
+  <div v-else class="container-page py-10">
     <PageHeader title="Bursa Limbah & Produk" subtitle="Pertemukan surplus limbah dengan kebutuhan bahan baku — simbiosis industri antar-UMKM.">
       <template #actions>
         <AppButton @click="openForm"><template #icon><Plus class="h-4 w-4" /></template>Pasang Iklan</AppButton>
