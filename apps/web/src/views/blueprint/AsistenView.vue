@@ -12,6 +12,8 @@ interface Msg {
   text: string
   sources?: BlueprintSummary[]
   suggestions?: string[]
+  model?: string
+  grounded?: boolean
 }
 
 const messages = ref<Msg[]>([
@@ -39,7 +41,7 @@ async function send(text?: string) {
   scrollDown()
   try {
     const reply = await api.askAssistant(q)
-    messages.value.push({ role: 'assistant', text: reply.answer, sources: reply.sources, suggestions: reply.suggestions })
+    messages.value.push({ role: 'assistant', text: reply.answer, sources: reply.sources, suggestions: reply.suggestions, model: reply.model, grounded: reply.grounded })
   } finally {
     thinking.value = false
     scrollDown()
@@ -77,6 +79,10 @@ async function send(text?: string) {
             <div class="inline-block rounded-2xl px-4 py-2.5 text-left text-sm leading-relaxed" :class="m.role === 'user' ? 'bg-primary-600 text-white' : 'bg-surface text-ink shadow-xs'">
               <p class="whitespace-pre-line">{{ m.text }}</p>
             </div>
+            <p v-if="m.role === 'assistant' && m.model" class="mt-1 text-[11px] text-muted">
+              <span v-if="m.grounded" class="inline-flex items-center gap-1"><Sparkles class="h-3 w-3 text-primary-500" /> {{ m.model }} · RAG ter-grounding</span>
+              <span v-else class="inline-flex items-center gap-1">Ringkasan langsung dari repositori</span>
+            </p>
 
             <!-- Sumber (sitasi) -->
             <div v-if="m.sources?.length" class="mt-2 space-y-2">

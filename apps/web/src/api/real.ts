@@ -239,6 +239,15 @@ export const realApi: typeof mockApi = {
   async stats() {
     return req(http.get('/admin/stats'))
   },
+  async getAiSettings() {
+    return req(http.get('/admin/ai-settings'))
+  },
+  async updateAiSettings(patch) {
+    return req(http.put('/admin/ai-settings', patch))
+  },
+  async testAiConnection() {
+    return req(http.post('/admin/ai-settings/test'))
+  },
 
   // ---------- SIMBIOSIS ----------
   async listListings(filter = {}) {

@@ -6,6 +6,8 @@ export interface AssistantReply {
   answer: string
   sources: BlueprintSummary[]
   suggestions: string[]
+  model?: string
+  grounded?: boolean
 }
 
 export type ListingKind = 'surplus' | 'need'

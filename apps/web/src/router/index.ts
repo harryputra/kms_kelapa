@@ -64,6 +64,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/admin', name: 'admin-dashboard', component: () => import('@/views/admin/AdminDashboard.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['admin'], title: 'Dashboard Admin' } },
   { path: '/admin/users', name: 'admin-users', component: () => import('@/views/admin/UsersView.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['admin'], title: 'Manajemen Pengguna' } },
   { path: '/admin/settings', name: 'admin-settings', component: () => import('@/views/admin/SettingsView.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['admin'], title: 'Pengaturan Sistem' } },
+  { path: '/admin/ai', name: 'admin-ai', component: () => import('@/views/admin/AiSettingsView.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['admin'], title: 'Asisten AI' } },
   { path: '/admin/menu', name: 'admin-menu', component: () => import('@/views/admin/MenuManagerView.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['admin'], title: 'Menu Manager' } },
   { path: '/admin/recycle-bin', name: 'admin-recycle', component: () => import('@/views/admin/RecycleBinView.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['admin'], title: 'Recycle Bin' } },
   { path: '/admin/audit', name: 'admin-audit', component: () => import('@/views/admin/AuditLogView.vue'), meta: { layout: 'dashboard', requiresAuth: true, roles: ['admin'], title: 'Audit Log' } },

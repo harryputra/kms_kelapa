@@ -222,6 +222,41 @@ export interface SystemSettings {
   maintenance_mode: boolean
 }
 
+// ---- Konfigurasi Asisten AI (Tanya COCO) ----
+export type AiProvider = 'openai' | 'anthropic'
+
+export interface AiSettings {
+  enabled: boolean
+  provider: AiProvider
+  base_url: string
+  model: string
+  api_key_set: boolean
+  temperature: number
+  max_tokens: number
+  top_k: number
+  system_prompt: string
+}
+
+export interface AiSettingsInput {
+  enabled?: boolean
+  provider?: AiProvider
+  base_url?: string
+  model?: string
+  api_key?: string | null
+  temperature?: number
+  max_tokens?: number
+  top_k?: number
+  system_prompt?: string
+}
+
+export interface AiTestResult {
+  ok: boolean
+  message?: string
+  latency_ms?: number
+  model?: string
+  sample?: string
+}
+
 export interface PaginationMeta {
   current_page: number
   per_page: number

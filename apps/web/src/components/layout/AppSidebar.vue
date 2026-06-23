@@ -4,7 +4,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import {
   LayoutDashboard, FileText, PenSquare, Bookmark, Bell, User, Wrench,
   ClipboardCheck, LayoutTemplate, MessageSquareWarning, Flag, Stamp,
-  Users, Settings, ListTree, Trash2, ScrollText, ShieldCheck, Gavel,
+  Users, Settings, ListTree, Trash2, ScrollText, ShieldCheck, Gavel, Bot,
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notifications'
@@ -38,6 +38,7 @@ const adminGroup: Item[] = [
   { label: 'Dashboard Admin', to: '/admin', icon: ShieldCheck },
   { label: 'Pengguna', to: '/admin/users', icon: Users },
   { label: 'Pengaturan', to: '/admin/settings', icon: Settings },
+  { label: 'Asisten AI', to: '/admin/ai', icon: Bot },
   { label: 'Menu Manager', to: '/admin/menu', icon: ListTree },
   { label: 'Recycle Bin', to: '/admin/recycle-bin', icon: Trash2 },
   { label: 'Audit Log', to: '/admin/audit', icon: ScrollText },

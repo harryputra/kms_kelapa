@@ -24,6 +24,10 @@ import type {
   UmkmDirectoryEntry,
   WasteListing,
   WasteListingInput,
+  AiProvider,
+  AiSettings,
+  AiSettingsInput,
+  AiTestResult,
   Comment,
   ContentTemplate,
   ForumReply,
@@ -52,6 +56,23 @@ import { projectPct } from '@/lib/indonesiaMap'
 import { DIFFICULTY, MATURITY, WASTE, computeEconomics, formatRupiah } from '@/lib/blueprint'
 
 const delay = (ms = 320) => new Promise((r) => setTimeout(r, ms))
+
+// Konfigurasi Asisten AI (simulasi penyimpanan admin di mode mock).
+const mockAi = {
+  enabled: false,
+  provider: 'openai' as AiProvider,
+  base_url: 'https://api.openai.com/v1',
+  model: 'gpt-4o-mini',
+  api_key: '',
+  temperature: 0.3,
+  max_tokens: 700,
+  top_k: 4,
+  system_prompt: '',
+}
+const readAiSettings = (): AiSettings => {
+  const { api_key, ...rest } = mockAi
+  return { ...rest, api_key_set: api_key.length > 0 }
+}
 
 function paginate<T>(items: T[], page = 1, limit = 20): Paginated<T> {
   const total = items.length
@@ -358,6 +379,23 @@ export const mockApi = {
     await delay(220)
     Object.assign(db.systemSettings, s)
     return { ...db.systemSettings }
+  },
+  async getAiSettings(): Promise<AiSettings> {
+    await delay(140)
+    return readAiSettings()
+  },
+  async updateAiSettings(patch: AiSettingsInput): Promise<AiSettings> {
+    await delay(220)
+    if (patch.api_key !== undefined) mockAi.api_key = patch.api_key ?? ''
+    const { api_key: _omit, ...rest } = patch
+    Object.assign(mockAi, rest)
+    return readAiSettings()
+  },
+  async testAiConnection(): Promise<AiTestResult> {
+    await delay(650)
+    if (!mockAi.enabled) return { ok: false, message: 'Asisten AI dinonaktifkan. Aktifkan dulu untuk menguji.' }
+    if (mockAi.provider === 'anthropic' && !mockAi.api_key) return { ok: false, message: 'API key Anthropic belum diisi.' }
+    return { ok: true, latency_ms: 480, model: mockAi.model, sample: 'OK — koneksi simulasi berhasil (mode mock).' }
   },
   async menu(): Promise<MenuItem[]> {
     await delay(140)
@@ -746,6 +784,8 @@ export const mockApi = {
       answer,
       sources: ranked.map(toBlueprintSummary),
       suggestions: ['Mana yang modalnya paling kecil?', wasteHit ? 'Bagaimana cara uji mutunya?' : 'Produk apa dari tempurung?', 'Tampilkan cetak biru paling mudah'],
+      model: mockAi.enabled ? mockAi.model : 'repositori',
+      grounded: mockAi.enabled,
     }
   },
 

@@ -12,7 +12,7 @@ const PUBLIC = [
 ]
 const USER = ['/dashboard', '/dashboard/cetak-biru', '/dashboard/cetak-biru/baru', '/dashboard/articles', '/dashboard/submit', '/dashboard/bookmarks', '/dashboard/notifications', '/dashboard/profile', '/forum/baru']
 const MOD = ['/moderator', '/moderator/cetak-biru', '/moderator/review', '/moderator/review/1', '/moderator/templates', '/moderator/comments', '/moderator/reports']
-const ADMIN = ['/admin', '/admin/users', '/admin/settings', '/admin/menu', '/admin/recycle-bin', '/admin/audit']
+const ADMIN = ['/admin', '/admin/users', '/admin/settings', '/admin/ai', '/admin/menu', '/admin/recycle-bin', '/admin/audit']
 
 const ROLES = [
   { name: 'guest', uid: null, routes: PUBLIC },
