@@ -11,7 +11,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import type { BlueprintFull, BlueprintSummary, ReplicationReport } from '@/types'
 import { CAPITAL, DIFFICULTY, WASTE, formatRupiah } from '@/lib/blueprint'
-import { gradientFor, relativeTime, formatDate } from '@/lib/format'
+import { gradientFor, relativeTime, formatDate, slugify } from '@/lib/format'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import ArticleCover from '@/components/ui/ArticleCover.vue'
 import LoadingBlock from '@/components/ui/LoadingBlock.vue'
@@ -160,7 +160,7 @@ onMounted(load)
         <div class="mb-3 flex flex-wrap items-center gap-2">
           <RouterLink :to="`/cetak-biru?wasteKind=${bp.wasteKind}`" class="chip bg-primary-50 text-primary-700 hover:bg-primary-100">{{ WASTE[bp.wasteKind].label }}</RouterLink>
           <span class="text-muted">→</span>
-          <span class="chip bg-gold-100 text-gold-700">{{ bp.product }}</span>
+          <RouterLink :to="`/produk/${slugify(bp.product)}`" class="chip bg-gold-100 text-gold-700 hover:bg-gold-200">{{ bp.product }} ↗</RouterLink>
           <MaturityBadge :maturity="bp.maturity" show-level />
         </div>
         <h1 class="font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">{{ bp.title }}</h1>

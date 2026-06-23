@@ -22,6 +22,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/cetak-biru/:id', name: 'blueprint-detail', component: () => import('@/views/blueprint/BlueprintDetailView.vue'), meta: { layout: 'public', title: 'Detail Cetak Biru' } },
   { path: '/cetak-biru/:id/praktik', name: 'mode-praktik', component: () => import('@/views/blueprint/ModePraktikView.vue'), meta: { layout: 'public', title: 'Mode Praktik' } },
   { path: '/pohon-nilai', name: 'value-tree', component: () => import('@/views/blueprint/ValueTreeView.vue'), meta: { layout: 'public', title: 'Pohon Nilai Kelapa' } },
+  { path: '/produk/:slug', name: 'product-hub', component: () => import('@/views/blueprint/ProductHubView.vue'), meta: { layout: 'public', title: 'Rantai Nilai Produk' } },
   { path: '/tanya', name: 'tanya', component: () => import('@/views/blueprint/TanyaPakarView.vue'), meta: { layout: 'public', title: 'Tanya Pakar' } },
   // Simbiosis industri
   { path: '/bursa', name: 'bursa', component: () => import('@/views/community/BursaView.vue'), meta: { layout: 'public', title: 'Bursa Limbah' } },

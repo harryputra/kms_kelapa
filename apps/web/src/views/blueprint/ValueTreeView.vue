@@ -28,8 +28,8 @@ const productsOf = (wasteId: number) => nodes.value.filter((n) => n.type === 'pr
 function openWaste(slug: string) {
   router.push(`/cetak-biru?wasteKind=${slug}`)
 }
-function openProduct(wasteSlug: string, productSlug: string) {
-  router.push(`/cetak-biru?wasteKind=${wasteSlug}&product=${productSlug}`)
+function openProduct(_wasteSlug: string, productSlug: string) {
+  router.push(`/produk/${productSlug}`)
 }
 
 onMounted(async () => {
@@ -43,7 +43,7 @@ onMounted(async () => {
     <div class="mb-8 text-center">
       <h1 class="text-h1">Pohon Nilai Kelapa</h1>
       <p class="mx-auto mt-1 max-w-2xl text-muted">
-        Jelajahi peluang dari tiap bagian limbah kelapa — telusuri dari <strong>limbah</strong> → <strong>produk</strong> → <strong>cetak biru teknis</strong>.
+        Jelajahi peluang dari tiap bagian limbah kelapa. <strong>Klik sebuah produk</strong> untuk membuka rantai nilai lengkapnya — <strong>proses · UMKM produsen · pemasaran · ekonomi</strong>.
       </p>
     </div>
 

@@ -1,6 +1,7 @@
 // Tipe "Cetak Biru Teknis" — objek pengetahuan UTAMA COCONEXUS (pembeda inti).
 // Terstruktur agar bisa dicari faceted, dihitung ekonominya, & divalidasi lapangan.
 import type { UserProfile } from './index'
+import type { UmkmDirectoryEntry, WasteListing } from './community'
 
 export type Maturity = 'raw' | 'curated' | 'validated' | 'standard'
 export type BlueprintStatus = 'draft' | 'submitted' | 'published' | 'rejected'
@@ -172,6 +173,42 @@ export interface BlueprintFull extends BlueprintSummary {
   replications: ReplicationBreakdown
   variants: BlueprintVariant[]
   versions: BlueprintVersion[]
+}
+
+// ---- Hub Rantai Nilai Produk ----
+export interface MarketingChannel {
+  name: string
+  note: string
+}
+
+export interface MarketingPlaybook {
+  targetMarket: string[]
+  buyers: string[]
+  channels: MarketingChannel[]
+  priceRange: string
+  packaging: string
+  exportPotential: 'tinggi' | 'sedang' | 'rendah'
+  exportNote: string
+  tips: string[]
+}
+
+export interface ProductEconomics {
+  count: number
+  minCapital: number
+  maxCapital: number
+  avgWeeklyProfit: number
+  bepMin: number
+  bepMax: number
+  cheapestBlueprintId: number | null
+}
+
+export interface ProductHub {
+  product: { name: string; slug: string; wasteKind: WasteKind; wasteLabel: string; icon: string }
+  blueprints: BlueprintSummary[]
+  umkms: UmkmDirectoryEntry[]
+  economics: ProductEconomics
+  marketing: MarketingPlaybook | null
+  listings: WasteListing[]
 }
 
 export interface BlueprintFacets {

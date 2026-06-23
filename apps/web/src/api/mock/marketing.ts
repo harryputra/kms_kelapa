@@ -1,0 +1,111 @@
+// Panduan pemasaran per produk turunan kelapa (dimensi baru: cara menjual).
+import type { MarketingPlaybook } from '@/types'
+
+export const MARKETING: Record<string, MarketingPlaybook> = {
+  cocopeat: {
+    targetMarket: ['Industri hortikultura', 'Pembibitan & green house', 'Toko tanaman hias', 'Ekspor'],
+    buyers: ['Perusahaan media tanam', 'Petani modern', 'Eksportir cocopeat'],
+    channels: [
+      { name: 'Kemitraan industri', note: 'Kontrak suplai rutin ke produsen media tanam.' },
+      { name: 'Marketplace', note: 'Jual blok/curah ke pehobi tanaman di Tokopedia/Shopee.' },
+      { name: 'Ekspor (broker)', note: 'Lewat eksportir; butuh sertifikat & EC rendah.' },
+    ],
+    priceRange: 'Rp2.000–3.500/kg (curah) · blok 5kg Rp25rb–40rb',
+    packaging: 'Blok terkompresi (5 kg) atau karung curah 25/50 kg; label EC & kadar air.',
+    exportPotential: 'tinggi',
+    exportNote: 'Permintaan ekspor tinggi (India, Belanda, Korea). Wajib EC < 1.0 mS/cm & seragam.',
+    tips: ['Jaga konsistensi EC & kadar air per batch', 'Kumpulkan minimal 1 kontainer untuk ekspor (gabung antar-UMKM via Bursa)', 'Sertakan hasil uji lab sebagai pembeda mutu'],
+  },
+  cocofiber: {
+    targetMarket: ['Industri matras & jok', 'Konstruksi (geotekstil)', 'Kerajinan', 'Ekspor'],
+    buyers: ['Pabrik spring bed', 'Kontraktor penahan tanah', 'Eksportir serat'],
+    channels: [
+      { name: 'Kemitraan pabrik', note: 'Suplai bal serat ke pabrik matras/otomotif.' },
+      { name: 'Ekspor', note: 'Serat grade A diminati pasar Tiongkok & Timur Tengah.' },
+    ],
+    priceRange: 'Rp2.500–3.500/kg (grade B–A)',
+    packaging: 'Press menjadi bal padat untuk efisiensi kirim; sortir grade A/B.',
+    exportPotential: 'tinggi',
+    exportNote: 'Serat panjang grade A bernilai ekspor tinggi; butuh volume & kekeringan stabil.',
+    tips: ['Sortir grade A (>15 cm) terpisah — harga jauh lebih tinggi', 'Investasi mesin press untuk hemat ongkos kirim'],
+  },
+  'pot-sabut': {
+    targetMarket: ['Pembibitan & nursery', 'Toko pertanian', 'Program penghijauan', 'Ritel eco-product'],
+    buyers: ['Dinas pertanian/kehutanan', 'Komunitas urban farming', 'Toko tanaman'],
+    channels: [
+      { name: 'Marketplace & medsos', note: 'Jual eceran ke urban farmer (angle ramah lingkungan).' },
+      { name: 'Proyek/instansi', note: 'Tender penghijauan & pembibitan massal.' },
+    ],
+    priceRange: 'Rp2.000–5.000/pot (tergantung ukuran)',
+    packaging: 'Ikat per lusin; tonjolkan klaim biodegradable & bisa langsung tanam.',
+    exportPotential: 'sedang',
+    exportNote: 'Tren produk biodegradable naik; peluang ekspor niche ke pasar eco.',
+    tips: ['Angle pemasaran: "tanam tanpa buka pot, terurai jadi pupuk"', 'Incar tender pembibitan instansi untuk volume besar'],
+  },
+  briket: {
+    targetMarket: ['Rumah makan/BBQ', 'Ekspor (shisha/BBQ)', 'Industri', 'Ritel'],
+    buyers: ['Restoran & kafe shisha', 'Eksportir briket', 'Distributor energi'],
+    channels: [
+      { name: 'Ekspor (broker)', note: 'Pasar Timur Tengah & Eropa untuk briket shisha/BBQ.' },
+      { name: 'B2B lokal', note: 'Suplai ke resto, tukang sate, UMKM kuliner.' },
+      { name: 'Marketplace', note: 'Kemasan ritel untuk BBQ rumahan.' },
+    ],
+    priceRange: 'Rp8.000–12.000/kg (lokal) · ekspor lebih tinggi',
+    packaging: 'Kemasan 1–10 kg, cantumkan nilai kalor & kadar air; bentuk kubus/hexagonal untuk ekspor.',
+    exportPotential: 'tinggi',
+    exportNote: 'Ekspor sangat besar (Timur Tengah). Standar: kadar air <8%, nilai kalor tinggi, abu rendah.',
+    tips: ['Bentuk hexagonal/kubus seragam = nilai ekspor lebih baik', 'Uji nilai kalor & kadar air jadi nilai jual', 'Gabung volume antar-UMKM untuk penuhi kontainer ekspor'],
+  },
+  'arang-aktif': {
+    targetMarket: ['Industri filtrasi air/udara', 'Farmasi & kosmetik', 'Akuarium', 'Ekspor'],
+    buyers: ['Pabrik filter air', 'Industri kimia', 'Eksportir activated carbon'],
+    channels: [
+      { name: 'B2B industri', note: 'Kontrak ke industri filtrasi/kimia (butuh spesifikasi lab).' },
+      { name: 'Ekspor', note: 'Activated carbon tempurung diminati global.' },
+    ],
+    priceRange: 'Rp20.000–35.000/kg (tergantung daya serap iodin)',
+    packaging: 'Karung 25 kg + sertifikat uji (bilangan iodin, kadar abu); mesh sesuai permintaan.',
+    exportPotential: 'tinggi',
+    exportNote: 'Nilai tinggi bila bilangan iodin >750 mg/g. Pasar ekspor besar tapi butuh konsistensi mutu lab.',
+    tips: ['Investasi uji lab — spesifikasi menentukan harga', 'Mulai dari pasar lokal (akuarium/filter) sebelum ekspor'],
+  },
+  'nata-de-coco': {
+    targetMarket: ['Industri pangan/minuman', 'Reseller kuliner', 'Ritel & UMKM minuman'],
+    buyers: ['Pabrik minuman', 'Penjual es/dessert', 'Toko bahan kue'],
+    channels: [
+      { name: 'B2B pangan', note: 'Suplai lembaran/potongan ke pabrik minuman & dessert.' },
+      { name: 'Ritel kemasan', note: 'Kemasan cup siap konsumsi via marketplace/warung.' },
+    ],
+    priceRange: 'Rp10.000–18.000/kg (mentah) · kemasan jadi lebih tinggi',
+    packaging: 'Kemasan higienis food-grade; untuk ritel: cup dengan sirup; cantumkan PIRT.',
+    exportPotential: 'sedang',
+    exportNote: 'Potensi ekspor produk jadi (kemasan) ke Asia; butuh izin edar & higienitas ketat.',
+    tips: ['Urus izin PIRT/BPOM untuk masuk ritel', 'Jaga higienitas — penentu utama mutu & repeat order'],
+  },
+  cuka: {
+    targetMarket: ['Industri pangan', 'Toko bahan masak', 'Produk kesehatan/organik'],
+    buyers: ['Produsen makanan', 'Toko organik', 'Konsumen rumah tangga'],
+    channels: [
+      { name: 'Marketplace organik', note: 'Angle cuka organik/alami.' },
+      { name: 'B2B kuliner', note: 'Suplai ke produsen acar/saus.' },
+    ],
+    priceRange: 'Rp8.000–15.000/liter',
+    packaging: 'Botol kaca, label keasaman (pH) & "fermentasi alami"; urus PIRT.',
+    exportPotential: 'rendah',
+    exportNote: 'Pasar utama lokal/organik; ekspor terbatas & butuh standar pangan.',
+    tips: ['Konsistensi keasaman (pH) penting', 'Bangun merek "organik/alami" untuk premium'],
+  },
+  tepung: {
+    targetMarket: ['Industri pangan (kue/roti)', 'Produk diet/gluten-free', 'Ritel sehat'],
+    buyers: ['Bakery & UMKM kue', 'Toko produk sehat', 'Konsumen diet'],
+    channels: [
+      { name: 'Marketplace sehat', note: 'Angle tinggi serat, rendah karbo, gluten-free.' },
+      { name: 'B2B bakery', note: 'Suplai ke UMKM kue & roti.' },
+    ],
+    priceRange: 'Rp15.000–25.000/kg',
+    packaging: 'Kemasan kedap udara + silica gel; cantumkan komposisi gizi & PIRT.',
+    exportPotential: 'sedang',
+    exportNote: 'Tren pangan fungsional naik; peluang ekspor produk diet bila mutu & izin lengkap.',
+    tips: ['Tonjolkan klaim tinggi serat & gluten-free', 'Kemasan kedap udara untuk umur simpan panjang'],
+  },
+}

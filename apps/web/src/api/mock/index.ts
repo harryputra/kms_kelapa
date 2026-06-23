@@ -32,6 +32,8 @@ import type {
   MenuItem,
   Paginated,
   PaginationMeta,
+  ProductEconomics,
+  ProductHub,
   RecycleBinItem,
   ReportItem,
   Role,
@@ -39,11 +41,13 @@ import type {
   UserProfileDetail,
   ValueNode,
   VoteType,
+  WasteKind,
 } from '@/types'
 import * as db from './data'
 import { blueprintsFull, valueNodes } from './blueprints'
 import { questions, reportsByBlueprint } from './community'
 import { directory, listings, regionGeo } from './exchange'
+import { MARKETING } from './marketing'
 import { DIFFICULTY, MATURITY, WASTE, computeEconomics, formatRupiah } from '@/lib/blueprint'
 
 const delay = (ms = 320) => new Promise((r) => setTimeout(r, ms))
@@ -441,6 +445,38 @@ export const mockApi = {
       else count = pub.filter((b) => slug(b.product) === n.slug).length
       return { ...n, blueprintCount: count }
     })
+  },
+
+  // Hub Rantai Nilai Produk: agregasi proses + UMKM + ekonomi + pemasaran + bursa.
+  async productHub(productSlug: string): Promise<ProductHub> {
+    await delay()
+    const node = valueNodes.find((n) => n.type === 'product' && n.slug === productSlug)
+    if (!node) throw new ApiError(404, 'Produk tidak ditemukan.')
+    const wasteNode = valueNodes.find((n) => n.id === node.parentId)
+    const wasteKind = (wasteNode?.slug ?? 'sabut') as WasteKind
+    const bps = blueprintsFull.filter((b) => b.status === 'published' && slug(b.product) === productSlug)
+    const umkms = directory.filter((d) => d.products.some((p) => slug(p) === productSlug))
+    const list = listings.filter((l) => slug(l.material).includes(productSlug) || l.material.toLowerCase().includes(node.name.toLowerCase()))
+
+    let economics: ProductEconomics
+    if (bps.length) {
+      const caps = bps.map((b) => b.minCapital)
+      const ecos = bps.map((b) => computeEconomics(b.economic, b.economic.batchInputKg * 5))
+      const cheapest = bps.reduce((a, b) => (b.minCapital < a.minCapital ? b : a))
+      economics = {
+        count: bps.length, minCapital: Math.min(...caps), maxCapital: Math.max(...caps),
+        avgWeeklyProfit: Math.round(ecos.reduce((s, e) => s + e.grossProfit, 0) / ecos.length),
+        bepMin: Math.min(...ecos.map((e) => e.bepBatches)), bepMax: Math.max(...ecos.map((e) => e.bepBatches)),
+        cheapestBlueprintId: cheapest.id,
+      }
+    } else {
+      economics = { count: 0, minCapital: 0, maxCapital: 0, avgWeeklyProfit: 0, bepMin: 0, bepMax: 0, cheapestBlueprintId: null }
+    }
+
+    return {
+      product: { name: node.name, slug: productSlug, wasteKind, wasteLabel: WASTE[wasteKind].label, icon: node.icon },
+      blueprints: bps.map(toBlueprintSummary), umkms, economics, marketing: MARKETING[productSlug] ?? null, listings: list,
+    }
   },
 
   // ---- Kontribusi & kurasi Cetak Biru ----
