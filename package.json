@@ -10,6 +10,7 @@
     "build": "pnpm -r build",
     "preview": "pnpm --filter @coconexus/web preview",
     "typecheck": "pnpm -r typecheck",
+    "qa:crawl": "node scripts/crawl.mjs",
     "db:up": "docker compose -f infra/docker-compose.yml up -d mysql",
     "db:down": "docker compose -f infra/docker-compose.yml down",
     "db:push": "pnpm --filter @coconexus/api db:push",
@@ -19,5 +20,8 @@
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "pnpm@9.0.0"
+  "packageManager": "pnpm@9.0.0",
+  "devDependencies": {
+    "puppeteer-core": "^23.11.1"
+  }
 }
