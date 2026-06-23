@@ -9,6 +9,7 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import AppToggle from '@/components/ui/AppToggle.vue'
 import LoadingBlock from '@/components/ui/LoadingBlock.vue'
 
 const ui = useUiStore()
@@ -75,16 +76,7 @@ async function save() {
             <h3 class="flex items-center gap-2 font-display font-semibold text-ink"><AlertTriangle class="h-4.5 w-4.5 text-gold-500" /> Mode Pemeliharaan</h3>
             <p class="mt-1 text-sm text-muted">Saat aktif, hanya admin yang dapat mengakses situs.</p>
           </div>
-          <button
-            type="button"
-            class="relative h-6 w-11 shrink-0 rounded-full transition-colors"
-            :class="form.maintenance_mode ? 'bg-primary-600' : 'bg-line'"
-            role="switch"
-            :aria-checked="form.maintenance_mode"
-            @click="form.maintenance_mode = !form.maintenance_mode"
-          >
-            <span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform" :class="form.maintenance_mode ? 'translate-x-[22px]' : 'translate-x-0.5'" />
-          </button>
+          <AppToggle v-model="form.maintenance_mode" />
         </div>
       </div>
 

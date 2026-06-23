@@ -8,6 +8,7 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import AppToggle from '@/components/ui/AppToggle.vue'
 import LoadingBlock from '@/components/ui/LoadingBlock.vue'
 
 const ui = useUiStore()
@@ -105,9 +106,7 @@ async function test() {
             <h3 class="flex items-center gap-2 font-display font-semibold text-ink"><Bot class="h-4.5 w-4.5 text-primary-600" /> Aktifkan AI generatif (RAG)</h3>
             <p class="mt-1 text-sm text-muted">Saat <strong>mati</strong>, Tanya COCO tetap berfungsi memakai ringkasan dari repositori (tanpa biaya). Saat <strong>nyala</strong>, jawaban disusun oleh model yang dipilih dari konteks repositori.</p>
           </div>
-          <button type="button" class="relative h-6 w-11 shrink-0 rounded-full transition-colors" :class="form.enabled ? 'bg-primary-600' : 'bg-line'" role="switch" :aria-checked="form.enabled" @click="form.enabled = !form.enabled">
-            <span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform" :class="form.enabled ? 'translate-x-[22px]' : 'translate-x-0.5'" />
-          </button>
+          <AppToggle v-model="form.enabled" />
         </div>
       </div>
 
