@@ -243,7 +243,124 @@ async function main() {
     }
   }
 
-  console.log(`✅ Seed selesai: ${ROLES.length} role, ${DEMO_USERS.length + 1} user, ${VALUE_NODES.length} value node, ${BLUEPRINTS.length} cetak biru, Q&A siap.`)
+  // ====================== DEMO DOMAIN LENGKAP ======================
+  const catBySlug = Object.fromEntries((await prisma.category.findMany()).map((c) => [c.slug, c.id]))
+  const hAgo = (h: number) => new Date(Date.now() - h * 3_600_000)
+  const articleHtml = '<h2>Pendahuluan</h2><p>Pengalaman lapangan mengolah limbah kelapa menjadi produk bernilai. Artikel ini berbagi praktik dan pelajaran yang bisa langsung diterapkan UMKM.</p><h3>Inti</h3><ul><li>Konsistensi mutu</li><li>Kemitraan pembeli</li><li>Dokumentasi batch</li></ul><p>Semoga bermanfaat untuk komunitas.</p>'
+
+  // ---- Templates ----
+  if ((await prisma.contentTemplate.count()) === 0) {
+    await prisma.contentTemplate.createMany({ data: [
+      { name: 'Cara Membuat (Langkah Praktis)', content: '<h2>Pendahuluan</h2><p>{deskripsi}</p><h3>Alat & Bahan</h3><ul><li>{bahan}</li></ul><h2>Langkah</h2><ol><li>{langkah}</li></ol><h2>Hasil & Tips</h2><p>{hasil}</p>' },
+      { name: 'Studi Kasus UMKM', content: '<h2>Latar</h2><p>{latar}</p><h2>Tantangan</h2><p>{tantangan}</p><h2>Solusi</h2><p>{solusi}</p><h2>Dampak</h2><p>{dampak}</p>' },
+    ] })
+  }
+
+  // ---- Articles (Wawasan) + komentar + vote + bookmark ----
+  if ((await prisma.article.count()) === 0) {
+    const A = [
+      { title: 'Kisah Saya Membangun UMKM Cocopeat', authorEmail: 'user@coconexus.test', cat: 'sabut-kelapa', status: 'published', tags: ['cerita', 'cocopeat'], days: 1 },
+      { title: 'Strategi Pemasaran Briket ke Pasar Ekspor', authorEmail: 'siti@coconexus.test', cat: 'tempurung', status: 'published', tags: ['pemasaran', 'ekspor'], days: 3 },
+      { title: 'Pelajaran dari Gagal Panen Nata de Coco', authorEmail: 'user@coconexus.test', cat: 'air-kelapa', status: 'published', tags: ['nata', 'pelajaran'], days: 5 },
+      { title: 'Ekonomi Sirkular di Sentra Kelapa Desa', authorEmail: 'moderator@coconexus.test', cat: 'ekonomi-sirkular', status: 'published', tags: ['sirkular', 'desa'], days: 7 },
+      { title: 'Tips Menjaga Mutu Tepung Ampas Kelapa', authorEmail: 'siti@coconexus.test', cat: 'ampas-kelapa', status: 'published', tags: ['tepung', 'mutu'], days: 9 },
+      { title: 'Draft: Catatan Pemasaran via Marketplace', authorEmail: 'user@coconexus.test', cat: 'sabut-kelapa', status: 'submitted', tags: ['pemasaran'], days: 0 },
+      { title: 'Eksperimen Pupuk dari Sabut (perlu revisi)', authorEmail: 'siti@coconexus.test', cat: 'sabut-kelapa', status: 'revision', tags: ['pupuk'], days: 0 },
+    ]
+    for (const a of A) {
+      const slug = a.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      await prisma.article.create({ data: {
+        title: a.title, slug, authorId: userId[a.authorEmail], categoryId: catBySlug[a.cat], content: articleHtml,
+        excerpt: 'Pengalaman & praktik lapangan mengolah limbah kelapa menjadi produk bernilai untuk UMKM.',
+        status: a.status, tags: a.tags, views: 80 + a.days * 13, reviewNotes: a.status === 'revision' ? 'Mohon tambahkan takaran & sumber.' : null,
+        publishedAt: a.status === 'published' ? hAgo(a.days * 24) : null,
+      } })
+    }
+    const arts = await prisma.article.findMany({ where: { status: 'published' }, orderBy: { id: 'asc' } })
+    const first = arts[0]
+    if (first) {
+      await prisma.comment.createMany({ data: [
+        { articleId: first.id, userId: userId['siti@coconexus.test'], content: 'Inspiratif! Boleh tahu modal awalnya berapa?', status: 'approved', createdAt: hAgo(20) },
+        { articleId: first.id, userId: userId['moderator@coconexus.test'], content: 'Terima kasih sudah berbagi, sangat membantu komunitas.', status: 'approved', createdAt: hAgo(8) },
+        { articleId: first.id, userId: userId['siti@coconexus.test'], content: 'Izin share ke grup UMKM ya!', status: 'pending', createdAt: hAgo(3) },
+      ] })
+      await prisma.articleVote.createMany({ data: [
+        { articleId: first.id, userId: userId['siti@coconexus.test'], type: 'like' },
+        { articleId: first.id, userId: userId['moderator@coconexus.test'], type: 'like' },
+      ] })
+      await prisma.articleBookmark.create({ data: { articleId: first.id, userId: userId['user@coconexus.test'] } })
+      const subm = await prisma.article.findFirst({ where: { status: 'submitted' } })
+      const pend = await prisma.comment.findFirst({ where: { status: 'pending' } })
+      await prisma.report.createMany({ data: [
+        ...(pend ? [{ reporterId: userId['user@coconexus.test'], entityType: 'comment', entityId: pend.id, reason: 'spam', description: 'Promosi berulang.', preview: pend.content }] : []),
+        ...(subm ? [{ reporterId: userId['moderator@coconexus.test'], entityType: 'article', entityId: subm.id, reason: 'misinformation', description: 'Klaim perlu verifikasi.', preview: subm.title }] : []),
+      ] })
+    }
+  }
+
+  // ---- Notifikasi (untuk Budi) ----
+  if ((await prisma.notification.count()) === 0) {
+    await prisma.notification.createMany({ data: [
+      { userId: userId['user@coconexus.test'], type: 'article_approved', data: { message: 'Artikel "Kisah Saya Membangun UMKM Cocopeat" telah terbit.', link: '/dashboard/articles' } },
+      { userId: userId['user@coconexus.test'], type: 'reply', data: { message: 'Rina Salsabila membalas komentar Anda.', link: '/articles/1' } },
+      { userId: userId['user@coconexus.test'], type: 'badge_awarded', data: { message: 'Anda meraih lencana "Kontributor Pemula".', link: '/dashboard/profile' }, readAt: hAgo(48) },
+    ] })
+  }
+
+  // ---- Forum ----
+  if ((await prisma.forumTopic.count()) === 0) {
+    const t1 = await prisma.forumTopic.create({ data: { userId: userId['user@coconexus.test'], title: 'Menjaga kualitas cocopeat saat musim hujan?', content: 'Saat hujan cocopeat sering lembap & berjamur. Tips penyimpanan?', category: 'Sabut Kelapa', isPinned: true } })
+    await prisma.forumReply.createMany({ data: [
+      { topicId: t1.id, userId: userId['moderator@coconexus.test'], content: 'Gunakan silica gel + palet kayu agar tidak kontak lantai.' },
+      { topicId: t1.id, userId: userId['siti@coconexus.test'], content: 'Saya pakai oven pengering sederhana sebelum kemas.' },
+    ] })
+    await prisma.forumTopic.create({ data: { userId: userId['siti@coconexus.test'], title: 'Diskusi harga briket tempurung 2026', content: 'Yuk bahas tren harga briket ekspor tahun ini.', category: 'Tempurung' } })
+    await prisma.forumTopic.create({ data: { userId: userId['moderator@coconexus.test'], title: '[Terkunci] Aturan komunitas', content: 'Mohon baca aturan sebelum memposting.', category: 'Ekonomi Sirkular', isPinned: true, isLocked: true } })
+  }
+
+  // ---- System settings + menu ----
+  for (const [k, v] of Object.entries({ site_name: 'COCONEXUS', site_description: 'Platform manajemen pengetahuan limbah kelapa untuk UMKM.', posts_per_page: '20', maintenance_mode: 'false', favicon: '/favicon.svg', site_logo: '' })) {
+    await prisma.systemSetting.upsert({ where: { key: k }, update: {}, create: { key: k, value: v } })
+  }
+  if ((await prisma.menuItem.count()) === 0) {
+    await prisma.menuItem.createMany({ data: [
+      { label: 'Beranda', url: '/', icon: 'home', sortOrder: 1 },
+      { label: 'Cetak Biru', url: '/cetak-biru', icon: 'wrench', sortOrder: 2 },
+      { label: 'Pohon Nilai', url: '/pohon-nilai', icon: 'network', sortOrder: 3 },
+      { label: 'Wawasan', url: '/articles', icon: 'file-text', sortOrder: 4 },
+    ] })
+  }
+
+  // ---- Audit logs ----
+  if ((await prisma.auditLog.count()) === 0) {
+    await prisma.auditLog.createMany({ data: [
+      { userId: userId['moderator@coconexus.test'], action: 'article.approve', entityType: 'article', entityId: 1, description: 'Menyetujui artikel', ipAddress: '172.16.67.5', createdAt: hAgo(2) },
+      { userId: userId['admin@coconexus.test'] ?? null, action: 'settings.update', entityType: 'system', description: 'Mengubah posts_per_page', ipAddress: '172.16.67.5', createdAt: hAgo(9) },
+      { userId: userId['moderator@coconexus.test'], action: 'comment.reject', entityType: 'comment', entityId: 99, description: 'Menolak komentar spam', ipAddress: '172.16.67.5', createdAt: hAgo(26) },
+    ].filter((x) => x.userId !== undefined) })
+  }
+
+  // ---- Bursa & Direktori ----
+  if ((await prisma.wasteListing.count()) === 0) {
+    const L = [
+      { kind: 'surplus', material: 'Sabut kelapa', category: 'sabut', quantity: '500 kg/minggu', price: 'Rp300/kg', region: 'Jawa Barat', note: 'Sabut kering siap urai.', email: 'user@coconexus.test', umkm: 'Kelapa Jaya' },
+      { kind: 'need', material: 'Tempurung kelapa', category: 'tempurung', quantity: '200 kg/minggu', price: 'Nego', region: 'Jawa Timur', note: 'Untuk produksi briket.', email: 'siti@coconexus.test', umkm: 'Briket Makmur' },
+      { kind: 'surplus', material: 'Air kelapa', category: 'air', quantity: '1.000 L/minggu', price: 'Gratis (ambil)', region: 'Sulawesi Selatan', note: 'Limbah produksi santan.', email: 'user@coconexus.test', umkm: 'Santan Sulawesi' },
+      { kind: 'surplus', material: 'Tempurung kelapa', category: 'tempurung', quantity: '800 kg/minggu', price: 'Rp500/kg', region: 'Sumatera Utara', note: 'Cocok arang aktif.', email: 'siti@coconexus.test', umkm: 'Arang Medan' },
+      { kind: 'need', material: 'Ampas kelapa', category: 'ampas', quantity: '100 kg/minggu', price: 'Nego', region: 'Riau', note: 'Untuk tepung pangan.', email: 'user@coconexus.test', umkm: 'Tepung Riau' },
+    ]
+    for (const l of L) await prisma.wasteListing.create({ data: { kind: l.kind, material: l.material, category: l.category, quantity: l.quantity, price: l.price, region: l.region, note: l.note, umkmName: l.umkm, contact: l.email, userId: userId[l.email] } })
+  }
+  if ((await prisma.umkmDirectory.count()) === 0) {
+    const D = [
+      { email: 'user@coconexus.test', name: 'Kelapa Jaya', region: 'Jawa Barat', materials: ['Sabut'], products: ['Cocopeat', 'Pot Sabut'], cap: '±200 kg/minggu', bio: 'UMKM olah sabut di Sukabumi.', bp: 2, verified: true },
+      { email: 'siti@coconexus.test', name: 'Briket Makmur', region: 'Jawa Timur', materials: ['Tempurung'], products: ['Briket', 'Arang Aktif'], cap: '±500 kg/minggu', bio: 'Produsen briket & arang aktif.', bp: 2, verified: true },
+      { email: 'moderator@coconexus.test', name: 'Cocopeat Nusantara', region: 'Jawa Barat', materials: ['Sabut'], products: ['Cocopeat', 'Cocofiber'], cap: '±2 ton/bulan', bio: 'Pemasok mutu ekspor.', bp: 0, verified: true },
+    ]
+    for (const d of D) await prisma.umkmDirectory.create({ data: { userId: userId[d.email], businessName: d.name, region: d.region, materials: d.materials, products: d.products, capacity: d.cap, contact: d.email, bio: d.bio, blueprintsCount: d.bp, verified: d.verified } })
+  }
+
+  console.log(`✅ Seed selesai: ${ROLES.length} role, ${DEMO_USERS.length + 1} user, ${VALUE_NODES.length} value node, ${BLUEPRINTS.length} cetak biru, + Wawasan/forum/bursa/direktori/notif/menu/audit.`)
 }
 
 main()

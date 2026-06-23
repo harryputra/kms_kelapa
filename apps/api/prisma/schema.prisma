@@ -37,6 +37,17 @@ model User {
   questions     Question[]
   answers       Answer[]
   answerVotes   AnswerVote[]
+  articles      Article[]
+  comments      Comment[]
+  articleVotes  ArticleVote[]
+  articleBookmarks ArticleBookmark[]
+  contentReports Report[]
+  notifications Notification[]
+  forumTopics   ForumTopic[]
+  forumReplies  ForumReply[]
+  wasteListings WasteListing[]
+  directory     UmkmDirectory?
+  auditLogs     AuditLog[]
 
   @@index([roleId])
   @@index([status])
@@ -71,11 +82,12 @@ model UserProfile {
 }
 
 model Category {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
-  slug        String   @unique
+  slug        String    @unique
   description String?
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  articles    Article[]
 
   @@map("categories")
 }
@@ -296,4 +308,222 @@ model AnswerVote {
 
   @@unique([answerId, userId])
   @@map("answer_votes")
+}
+
+// ====================== WAWASAN / ARTIKEL ======================
+model Article {
+  id          Int               @id @default(autoincrement())
+  title       String
+  slug        String            @unique
+  authorId    Int               @map("author_id")
+  author      User              @relation(fields: [authorId], references: [id])
+  categoryId  Int?              @map("category_id")
+  category    Category?         @relation(fields: [categoryId], references: [id])
+  content     String            @db.LongText
+  excerpt     String            @db.Text
+  thumbnail   String?
+  status      String            @default("submitted") // draft|submitted|review|revision|published|rejected|archived
+  reviewNotes String?           @db.Text @map("review_notes")
+  tags        Json
+  views       Int               @default(0)
+  publishedAt DateTime?         @map("published_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  deletedAt   DateTime?         @map("deleted_at")
+  comments    Comment[]
+  votes       ArticleVote[]
+  bookmarks   ArticleBookmark[]
+
+  @@index([status])
+  @@index([authorId])
+  @@index([deletedAt])
+  @@map("articles")
+}
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  articleId Int       @map("article_id")
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    Int       @map("user_id")
+  user      User      @relation(fields: [userId], references: [id])
+  parentId  Int?      @map("parent_id")
+  parent    Comment?  @relation("thread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies   Comment[] @relation("thread")
+  content   String    @db.Text
+  status    String    @default("pending") // pending|approved|rejected
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([articleId])
+  @@index([status])
+  @@map("comments")
+}
+
+model ArticleVote {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  articleId Int      @map("article_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  type      String // like|dislike
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, articleId])
+  @@map("article_votes")
+}
+
+model ArticleBookmark {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  articleId Int      @map("article_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, articleId])
+  @@map("article_bookmarks")
+}
+
+model Report {
+  id          Int      @id @default(autoincrement())
+  reporterId  Int      @map("reporter_id")
+  reporter    User     @relation(fields: [reporterId], references: [id])
+  entityType  String   @map("entity_type") // article|comment
+  entityId    Int      @map("entity_id")
+  reason      String // spam|inappropriate|misinformation|other
+  description String?  @db.Text
+  preview     String?  @db.Text
+  status      String   @default("open") // open|ignored|resolved
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([status])
+  @@map("reports")
+}
+
+model ContentTemplate {
+  id        Int      @id @default(autoincrement())
+  name      String
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("content_templates")
+}
+
+// ====================== NOTIFIKASI ======================
+model Notification {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  data      Json
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+// ====================== FORUM ======================
+model ForumTopic {
+  id        Int          @id @default(autoincrement())
+  title     String
+  content   String       @db.Text
+  userId    Int          @map("user_id")
+  author    User         @relation(fields: [userId], references: [id])
+  category  String?
+  isPinned  Boolean      @default(false) @map("is_pinned")
+  isLocked  Boolean      @default(false) @map("is_locked")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  replies   ForumReply[]
+
+  @@map("forum_topics")
+}
+
+model ForumReply {
+  id        Int        @id @default(autoincrement())
+  topicId   Int        @map("topic_id")
+  topic     ForumTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  userId    Int        @map("user_id")
+  user      User       @relation(fields: [userId], references: [id])
+  content   String     @db.Text
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@index([topicId])
+  @@map("forum_replies")
+}
+
+// ====================== ADMIN ======================
+model SystemSetting {
+  key   String @id
+  value String @db.Text
+
+  @@map("system_settings")
+}
+
+model MenuItem {
+  id        Int     @id @default(autoincrement())
+  label     String
+  url       String
+  icon      String?
+  parentId  Int?    @map("parent_id")
+  sortOrder Int     @default(0) @map("sort_order")
+  isVisible Boolean @default(true) @map("is_visible")
+  target    String  @default("_self")
+
+  @@map("menu_items")
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?     @map("user_id")
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  entityType String?  @map("entity_type")
+  entityId   Int?     @map("entity_id")
+  description String?  @db.Text
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ====================== SIMBIOSIS INDUSTRI ======================
+model WasteListing {
+  id        Int      @id @default(autoincrement())
+  kind      String // surplus|need
+  material  String
+  category  String // sabut|tempurung|air|ampas|produk
+  quantity  String
+  price     String?
+  region    String
+  umkmName  String   @map("umkm_name")
+  contact   String
+  note      String   @db.Text
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([kind])
+  @@index([region])
+  @@map("waste_listings")
+}
+
+model UmkmDirectory {
+  id              Int     @id @default(autoincrement())
+  userId          Int     @unique @map("user_id")
+  user            User    @relation(fields: [userId], references: [id])
+  businessName    String  @map("business_name")
+  region          String
+  materials       Json
+  products        Json
+  capacity        String
+  contact         String
+  bio             String  @db.Text
+  blueprintsCount Int     @default(0) @map("blueprints_count")
+  verified        Boolean @default(false)
+
+  @@map("umkm_directory")
 }
