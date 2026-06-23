@@ -4,7 +4,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import {
   ArrowLeft, Bookmark, BookmarkCheck, Wallet, Clock, BarChart3, ShieldAlert,
   ListChecks, FlaskConical, Timer, Thermometer, Scale, CheckCircle2, Repeat2,
-  GitBranch, Share2, Sparkles, MessageCircleQuestion, History, Image as ImageIcon, Plus,
+  GitBranch, Share2, Sparkles, MessageCircleQuestion, History, Image as ImageIcon, Plus, Maximize2,
 } from 'lucide-vue-next'
 import { api, ApiError } from '@/api'
 import { useAuthStore } from '@/stores/auth'
@@ -213,9 +213,12 @@ onMounted(load)
             </div>
           </div>
 
-          <div class="mb-3 mt-8 flex items-center justify-between">
-            <h2 class="text-h3">Langkah (Mode Praktik)</h2>
-            <span class="text-sm font-medium text-primary-700">{{ progress }}% selesai</span>
+          <div class="mb-3 mt-8 flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-h3">Langkah</h2>
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-medium text-primary-700">{{ progress }}% selesai</span>
+              <RouterLink :to="`/cetak-biru/${id}/praktik`" class="btn-secondary btn-sm"><Maximize2 class="h-4 w-4" /> Mode Praktik</RouterLink>
+            </div>
           </div>
           <div class="mb-4 h-2 overflow-hidden rounded-full bg-line">
             <div class="h-full rounded-full bg-primary-500 transition-all" :style="{ width: `${progress}%` }" />

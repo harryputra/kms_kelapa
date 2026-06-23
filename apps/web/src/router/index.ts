@@ -20,6 +20,7 @@ const routes: RouteRecordRaw[] = [
   // Cetak Biru Teknis (objek pengetahuan utama / pembeda)
   { path: '/cetak-biru', name: 'blueprints', component: () => import('@/views/blueprint/BlueprintsView.vue'), meta: { layout: 'public', title: 'Cetak Biru Teknis' } },
   { path: '/cetak-biru/:id', name: 'blueprint-detail', component: () => import('@/views/blueprint/BlueprintDetailView.vue'), meta: { layout: 'public', title: 'Detail Cetak Biru' } },
+  { path: '/cetak-biru/:id/praktik', name: 'mode-praktik', component: () => import('@/views/blueprint/ModePraktikView.vue'), meta: { layout: 'public', title: 'Mode Praktik' } },
   { path: '/pohon-nilai', name: 'value-tree', component: () => import('@/views/blueprint/ValueTreeView.vue'), meta: { layout: 'public', title: 'Pohon Nilai Kelapa' } },
   { path: '/tanya', name: 'tanya', component: () => import('@/views/blueprint/TanyaPakarView.vue'), meta: { layout: 'public', title: 'Tanya Pakar' } },
   // Simbiosis industri
@@ -31,6 +32,8 @@ const routes: RouteRecordRaw[] = [
   { path: '/forum', name: 'forum', component: () => import('@/views/forum/ForumListView.vue'), meta: { layout: 'public', title: 'Forum' } },
   { path: '/forum/baru', name: 'forum-new', component: () => import('@/views/forum/NewTopicView.vue'), meta: { layout: 'public', requiresAuth: true, title: 'Topik Baru' } },
   { path: '/forum/:id', name: 'forum-topic', component: () => import('@/views/forum/ForumTopicView.vue'), meta: { layout: 'public', title: 'Topik' } },
+  { path: '/asisten', name: 'asisten', component: () => import('@/views/blueprint/AsistenView.vue'), meta: { layout: 'public', title: 'Asisten AI' } },
+  { path: '/glosarium', name: 'glosarium', component: () => import('@/views/public/GlosariumView.vue'), meta: { layout: 'public', title: 'Glosarium' } },
   { path: '/tentang', name: 'about', component: () => import('@/views/public/AboutView.vue'), meta: { layout: 'public', title: 'Tentang' } },
 
   // ---------- AUTH ----------

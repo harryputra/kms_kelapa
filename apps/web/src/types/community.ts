@@ -1,6 +1,12 @@
 // Tipe Pilar 3 — Simbiosis Industri: Bursa Limbah, Direktori UMKM, Peta Sebaran.
 import type { UserProfile } from './index'
-import type { WasteKind } from './blueprint'
+import type { BlueprintSummary, WasteKind } from './blueprint'
+
+export interface AssistantReply {
+  answer: string
+  sources: BlueprintSummary[]
+  suggestions: string[]
+}
 
 export type ListingKind = 'surplus' | 'need'
 export type ListingCategory = WasteKind | 'produk'

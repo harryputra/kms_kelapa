@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { Download } from 'lucide-vue-next'
 import BrandLogo from './BrandLogo.vue'
+import { usePwaInstall } from '@/composables/usePwa'
 const year = new Date().getFullYear()
+const { canInstall, install } = usePwaInstall()
 </script>
 
 <template>
@@ -24,15 +27,20 @@ const year = new Date().getFullYear()
         <div>
           <p class="mb-3 text-sm font-semibold text-ink">Bantuan</p>
           <ul class="space-y-2 text-sm text-muted">
-            <li><a href="#" class="hover:text-primary-600">Pusat Bantuan</a></li>
+            <li><RouterLink to="/asisten" class="hover:text-primary-600">Asisten AI</RouterLink></li>
+            <li><RouterLink to="/glosarium" class="hover:text-primary-600">Glosarium</RouterLink></li>
             <li><a href="#" class="hover:text-primary-600">Kebijakan Privasi</a></li>
-            <li><a href="#" class="hover:text-primary-600">Kontak</a></li>
           </ul>
         </div>
       </div>
       <div class="mt-10 flex flex-col items-center justify-between gap-3 border-t border-line pt-6 text-xs text-muted sm:flex-row">
         <p>© {{ year }} COCONEXUS — KMS v2.0. Untuk UMKM Kelapa Indonesia.</p>
-        <p>Dibuat untuk ekonomi sirkular 🌱</p>
+        <div class="flex items-center gap-4">
+          <button v-if="canInstall" class="inline-flex items-center gap-1.5 font-medium text-primary-600 hover:text-primary-700" @click="install">
+            <Download class="h-3.5 w-3.5" /> Pasang Aplikasi
+          </button>
+          <p>Dibuat untuk ekonomi sirkular 🌱</p>
+        </div>
       </div>
     </div>
   </footer>

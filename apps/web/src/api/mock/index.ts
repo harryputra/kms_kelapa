@@ -6,6 +6,7 @@ import type {
   ArticleDetail,
   ArticleFull,
   ArticleSummary,
+  AssistantReply,
   AuditLog,
   AuthResult,
   BlueprintCreateInput,
@@ -43,6 +44,7 @@ import * as db from './data'
 import { blueprintsFull, valueNodes } from './blueprints'
 import { questions, reportsByBlueprint } from './community'
 import { directory, listings, regionGeo } from './exchange'
+import { DIFFICULTY, MATURITY, WASTE, computeEconomics, formatRupiah } from '@/lib/blueprint'
 
 const delay = (ms = 320) => new Promise((r) => setTimeout(r, ms))
 
@@ -665,6 +667,48 @@ export const mockApi = {
     }))
   },
 
+  // ---------- ASISTEN AI "Tanya COCO" (RAG ter-grounding ke repositori) ----------
+  async askAssistant(question: string): Promise<AssistantReply> {
+    await delay(750)
+    const q = question.toLowerCase()
+    const pool = blueprintsFull.filter((b) => b.status === 'published')
+    const budget = parseBudget(q)
+
+    const wasteHit = (Object.keys(WASTE) as Array<keyof typeof WASTE>).find(
+      (k) => q.includes(k) || q.includes(WASTE[k].label.toLowerCase()),
+    )
+    let scoped = pool
+    if (wasteHit) scoped = scoped.filter((b) => b.wasteKind === wasteHit)
+    if (q.includes('mudah') || q.includes('pemula') || q.includes('gampang')) scoped = scoped.filter((b) => b.difficulty === 'mudah')
+    if (budget != null) scoped = scoped.filter((b) => b.minCapital <= budget)
+    if (!scoped.length) scoped = pool
+
+    const order = { raw: 1, curated: 2, validated: 3, standard: 4 }
+    const ranked = [...scoped]
+      .sort((a, b) => order[b.maturity] - order[a.maturity] || a.minCapital - b.minCapital)
+      .slice(0, 3)
+
+    const intro =
+      budget != null
+        ? `Dengan modal sekitar ${formatRupiah(budget)}${wasteHit ? ' dan bahan ' + WASTE[wasteHit].label.toLowerCase() : ''}, berikut cetak biru paling sesuai & terbukti di lapangan:`
+        : wasteHit
+          ? `Untuk pengolahan ${WASTE[wasteHit].label.toLowerCase()}, ini rekomendasi cetak biru paling matang:`
+          : 'Berikut cetak biru paling relevan dari repositori untuk pertanyaan Anda:'
+
+    const lines = ranked.map((b, i) => {
+      const eco = computeEconomics(b.economic, b.economic.batchInputKg * 5)
+      return `${i + 1}. ${b.title}\n   • Modal mulai ${formatRupiah(b.minCapital)} · ${DIFFICULTY[b.difficulty].label} · Kematangan: ${MATURITY[b.maturity].label}\n   • Estimasi laba ${formatRupiah(eco.grossProfit)}/minggu (skala 5 batch), BEP ±${eco.bepBatches} batch.`
+    })
+
+    const answer = `${intro}\n\n${lines.join('\n\n')}\n\nJawaban ini disusun dari ${ranked.length} cetak biru tervalidasi di repositori COCONEXUS — buka sumber di bawah untuk langkah lengkap, parameter mutu, dan K3.`
+
+    return {
+      answer,
+      sources: ranked.map(toBlueprintSummary),
+      suggestions: ['Mana yang modalnya paling kecil?', wasteHit ? 'Bagaimana cara uji mutunya?' : 'Produk apa dari tempurung?', 'Tampilkan cetak biru paling mudah'],
+    }
+  },
+
   async stats() {
     await delay(180)
     return {
@@ -688,6 +732,16 @@ function stripPassword(u: db.SeedUser): UserProfileDetail {
   void password; void status; void created_at
   return rest
 }
+function parseBudget(q: string): number | null {
+  let m = q.match(/(\d+(?:[.,]\d+)?)\s*(juta|jt)\b/)
+  if (m) return Math.round(parseFloat(m[1].replace(',', '.')) * 1_000_000)
+  m = q.match(/(\d+(?:[.,]\d+)?)\s*(ribu|rb)\b/)
+  if (m) return Math.round(parseFloat(m[1].replace(',', '.')) * 1_000)
+  m = q.match(/rp\s*([\d.]{4,})/)
+  if (m) return parseInt(m[1].replace(/\./g, ''), 10) || null
+  return null
+}
+
 function toBlueprintSummary(b: BlueprintFull): BlueprintSummary {
   const { summary, materials, steps, quality, safety, economic, sources, isBookmarked, replications, variants, ...rest } = b
   void summary; void materials; void steps; void quality; void safety

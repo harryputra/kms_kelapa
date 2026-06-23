@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { Menu, X, ChevronDown, MessagesSquare, MessageCircleQuestion, Repeat2, Users } from 'lucide-vue-next'
+import { Menu, X, ChevronDown, MessagesSquare, MessageCircleQuestion, Repeat2, Users, Bot } from 'lucide-vue-next'
 import { onClickOutside } from '@vueuse/core'
 import { useAuthStore } from '@/stores/auth'
 import BrandLogo from './BrandLogo.vue'
@@ -22,8 +22,9 @@ const nav = [
   { label: 'Wawasan', to: '/articles' },
 ]
 const komunitas = [
-  { label: 'Forum Diskusi', to: '/forum', icon: MessagesSquare, desc: 'Tanya jawab & obrolan komunitas' },
+  { label: 'Asisten AI (Tanya COCO)', to: '/asisten', icon: Bot, desc: 'Rekomendasi dari repositori tervalidasi' },
   { label: 'Tanya Pakar', to: '/tanya', icon: MessageCircleQuestion, desc: 'Q&A teknis dengan jawaban terverifikasi' },
+  { label: 'Forum Diskusi', to: '/forum', icon: MessagesSquare, desc: 'Tanya jawab & obrolan komunitas' },
   { label: 'Bursa Limbah', to: '/bursa', icon: Repeat2, desc: 'Surplus ↔ kebutuhan bahan baku' },
   { label: 'Direktori UMKM', to: '/direktori', icon: Users, desc: 'Temukan mitra & peta sebaran' },
 ]
