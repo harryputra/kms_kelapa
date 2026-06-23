@@ -206,7 +206,44 @@ async function main() {
     })
   }
 
-  console.log(`✅ Seed selesai: ${ROLES.length} role, ${DEMO_USERS.length + 1} user, ${VALUE_NODES.length} value node, ${BLUEPRINTS.length} cetak biru.`)
+  // --- Demo: Tanya Pakar (Q&A) ---
+  if ((await prisma.question.count()) === 0) {
+    const bpBySlug = Object.fromEntries((await prisma.blueprint.findMany({ select: { id: true, slug: true, title: true } })).map((b) => [b.slug, b]))
+    const QA = [
+      {
+        bpSlug: 'briket-arang-tempurung', userEmail: 'user@coconexus.test', solved: true,
+        title: 'Bisakah karbonisasi pakai tungku tanah liat?',
+        content: 'Saya belum punya drum, apakah tungku tanah liat tradisional bisa dipakai?',
+        answers: [
+          { userEmail: 'moderator@coconexus.test', content: 'Bisa, namun kontrol suhunya lebih sulit sehingga rendemen arang bisa turun. Untuk konsistensi mutu, drum tertutup tetap lebih disarankan.', votes: 9, isBest: true, isExpert: true },
+          { userEmail: 'siti@coconexus.test', content: 'Saya pernah coba tungku, hasilnya lumayan tapi lebih boros bahan.', votes: 3, isBest: false, isExpert: false },
+        ],
+      },
+      {
+        bpSlug: 'nata-de-coco', userEmail: 'siti@coconexus.test', solved: false,
+        title: 'Kenapa nata saya tipis dan berair?',
+        content: 'Sudah fermentasi 7 hari tapi nata hanya tipis ~0,3 cm. Ada saran?',
+        answers: [{ userEmail: 'moderator@coconexus.test', content: 'Umumnya karena pH belum tepat (idealnya 4–4,5) atau starter kurang aktif. Jangan sering menggoyang nampan.', votes: 6, isBest: false, isExpert: true }],
+      },
+      {
+        bpSlug: null, userEmail: 'siti@coconexus.test', solved: false,
+        title: 'Sabut basah perlu dijemur berapa lama sebelum diolah?',
+        content: 'Di daerah saya sering hujan, sabut selalu lembap. Idealnya kadar air berapa?',
+        answers: [{ userEmail: 'moderator@coconexus.test', content: 'Targetkan kadar air di bawah 15%. Penjemuran matahari penuh biasanya 1–2 hari; jika mendung gunakan oven sederhana.', votes: 4, isBest: false, isExpert: true }],
+      },
+    ]
+    for (const q of QA) {
+      const bp = q.bpSlug ? bpBySlug[q.bpSlug] : null
+      await prisma.question.create({
+        data: {
+          blueprintId: bp?.id ?? null, blueprintTitle: bp?.title ?? null, userId: userId[q.userEmail], title: q.title, content: q.content, solved: q.solved,
+          answers: { create: q.answers.map((a) => ({ userId: userId[a.userEmail], content: a.content, votes: a.votes, isBest: a.isBest, isExpert: a.isExpert })) },
+        },
+      })
+    }
+  }
+
+  console.log(`✅ Seed selesai: ${ROLES.length} role, ${DEMO_USERS.length + 1} user, ${VALUE_NODES.length} value node, ${BLUEPRINTS.length} cetak biru, Q&A siap.`)
 }
 
 main()

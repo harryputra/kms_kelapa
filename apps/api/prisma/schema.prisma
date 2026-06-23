@@ -33,6 +33,10 @@ model User {
   refreshTokens RefreshToken[]
   blueprints    Blueprint[]
   reports       ReplicationReport[]
+  bookmarks     Bookmark[]
+  questions     Question[]
+  answers       Answer[]
+  answerVotes   AnswerVote[]
 
   @@index([roleId])
   @@index([status])
@@ -122,6 +126,8 @@ model Blueprint {
   reports     ReplicationReport[]
   versions    BlueprintVersion[]
   variants    BlueprintVariant[]
+  bookmarks   Bookmark[]
+  questions   Question[]
 
   @@index([wasteKind])
   @@index([status])
@@ -233,4 +239,61 @@ model BlueprintVariant {
   title       String
 
   @@map("blueprint_variants")
+}
+
+model Bookmark {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @map("user_id")
+  blueprintId Int       @map("blueprint_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blueprint   Blueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@unique([userId, blueprintId])
+  @@map("bookmarks")
+}
+
+model Question {
+  id             Int        @id @default(autoincrement())
+  blueprintId    Int?       @map("blueprint_id")
+  blueprint      Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  blueprintTitle String?    @map("blueprint_title")
+  userId         Int        @map("user_id")
+  user           User       @relation(fields: [userId], references: [id])
+  title          String
+  content        String     @db.Text
+  solved         Boolean    @default(false)
+  createdAt      DateTime   @default(now()) @map("created_at")
+  answers        Answer[]
+
+  @@index([blueprintId])
+  @@map("questions")
+}
+
+model Answer {
+  id         Int          @id @default(autoincrement())
+  questionId Int          @map("question_id")
+  question   Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userId     Int          @map("user_id")
+  user       User         @relation(fields: [userId], references: [id])
+  content    String       @db.Text
+  votes      Int          @default(0)
+  isBest     Boolean      @default(false) @map("is_best")
+  isExpert   Boolean      @default(false) @map("is_expert")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  voters     AnswerVote[]
+
+  @@index([questionId])
+  @@map("answers")
+}
+
+model AnswerVote {
+  id       Int    @id @default(autoincrement())
+  answerId Int    @map("answer_id")
+  userId   Int    @map("user_id")
+  answer   Answer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([answerId, userId])
+  @@map("answer_votes")
 }
