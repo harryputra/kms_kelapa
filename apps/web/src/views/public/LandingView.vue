@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
   ArrowRight, Sparkles, PenLine, ShieldCheck, TrendingUp, Recycle, Network,
-  Layers, Shell, Droplets, Wheat, BadgeCheck, Calculator,
+  Layers, Shell, Droplets, Wheat, BadgeCheck, Calculator, Repeat2, Users, MapPin,
 } from 'lucide-vue-next'
 import { api } from '@/api'
 import type { BlueprintSummary } from '@/types'
@@ -165,6 +165,35 @@ onMounted(async () => {
         <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-600 text-white"><TrendingUp class="h-6 w-6" /></span>
         <h3 class="mt-4 text-h3">Naik Kematangan</h3>
         <p class="mt-2 text-sm leading-relaxed text-muted">Makin banyak yang berhasil → cetak biru naik dari Mentah → Standar Rujukan.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMBIOSIS INDUSTRI -->
+  <section class="border-y border-line bg-surface py-16">
+    <div class="container-page">
+      <div class="mb-8 text-center">
+        <span class="chip mb-3 bg-primary-50 text-primary-700"><Repeat2 class="h-3.5 w-3.5" /> Simbiosis Industri</span>
+        <h2 class="text-h1">Pengetahuan yang Terhubung ke Ekonomi</h2>
+        <p class="mx-auto mt-1 max-w-xl text-muted">Bukan sekadar belajar — temukan mitra, jual surplus, dan dapatkan bahan baku.</p>
+      </div>
+      <div class="grid gap-6 md:grid-cols-2">
+        <RouterLink to="/bursa" class="premium-card premium-card-hover group flex items-center gap-5 p-6">
+          <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary-600 text-white"><Repeat2 class="h-7 w-7" /></span>
+          <div class="flex-1">
+            <h3 class="font-display text-h3 group-hover:text-primary-700">Bursa Limbah & Produk</h3>
+            <p class="mt-1 text-sm text-muted">Pertemukan surplus limbah dengan kebutuhan bahan baku antar-UMKM.</p>
+          </div>
+          <ArrowRight class="h-5 w-5 text-muted transition-transform group-hover:translate-x-1" />
+        </RouterLink>
+        <RouterLink to="/direktori" class="premium-card premium-card-hover group flex items-center gap-5 p-6">
+          <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gold-500 text-white"><Users class="h-7 w-7" /></span>
+          <div class="flex-1">
+            <h3 class="font-display text-h3 group-hover:text-primary-700">Direktori & Peta UMKM</h3>
+            <p class="mt-1 inline-flex items-center gap-1 text-sm text-muted"><MapPin class="h-3.5 w-3.5" /> Temukan mitra di sentra kelapa seluruh Indonesia.</p>
+          </div>
+          <ArrowRight class="h-5 w-5 text-muted transition-transform group-hover:translate-x-1" />
+        </RouterLink>
       </div>
     </div>
   </section>

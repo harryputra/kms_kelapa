@@ -13,10 +13,16 @@ import type {
   BlueprintFull,
   BlueprintSummary,
   Category,
+  ListingCategory,
+  ListingKind,
   QnaAnswer,
   QnaQuestion,
+  RegionStat,
   ReplicationInput,
   ReplicationReport,
+  UmkmDirectoryEntry,
+  WasteListing,
+  WasteListingInput,
   Comment,
   ContentTemplate,
   ForumReply,
@@ -36,6 +42,7 @@ import type {
 import * as db from './data'
 import { blueprintsFull, valueNodes } from './blueprints'
 import { questions, reportsByBlueprint } from './community'
+import { directory, listings, regionGeo } from './exchange'
 
 const delay = (ms = 320) => new Promise((r) => setTimeout(r, ms))
 
@@ -597,6 +604,65 @@ export const mockApi = {
     } else {
       b.status = 'rejected'
     }
+  },
+
+  // ---------- SIMBIOSIS INDUSTRI (Bursa, Direktori, Peta) ----------
+  async listListings(filter: { kind?: ListingKind | ''; category?: ListingCategory | ''; region?: string; search?: string } = {}): Promise<WasteListing[]> {
+    await delay()
+    let list = [...listings]
+    if (filter.kind) list = list.filter((l) => l.kind === filter.kind)
+    if (filter.category) list = list.filter((l) => l.category === filter.category)
+    if (filter.region) list = list.filter((l) => l.region === filter.region)
+    if (filter.search) {
+      const q = filter.search.toLowerCase()
+      list = list.filter((l) => l.material.toLowerCase().includes(q) || l.umkmName.toLowerCase().includes(q) || l.note.toLowerCase().includes(q))
+    }
+    return list.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  },
+
+  async createListing(input: WasteListingInput): Promise<WasteListing> {
+    await delay(400)
+    if (!currentUserId) throw new ApiError(401, 'Anda harus login.')
+    const author = db.users.find((u) => u.id === currentUserId)!
+    const id = Math.max(0, ...listings.map((l) => l.id)) + 1
+    const created: WasteListing = {
+      id,
+      kind: input.kind,
+      material: input.material,
+      category: input.category,
+      quantity: input.quantity,
+      price: input.price || null,
+      region: input.region,
+      umkmName: author.display_name,
+      contact: author.email,
+      note: input.note,
+      createdAt: new Date().toISOString(),
+      user: db.pub(author.id),
+    }
+    listings.unshift(created)
+    return created
+  },
+
+  async listDirectory(filter: { region?: string; search?: string } = {}): Promise<UmkmDirectoryEntry[]> {
+    await delay()
+    let list = [...directory]
+    if (filter.region) list = list.filter((d) => d.region === filter.region)
+    if (filter.search) {
+      const q = filter.search.toLowerCase()
+      list = list.filter((d) => d.businessName.toLowerCase().includes(q) || d.products.some((p) => p.toLowerCase().includes(q)) || d.materials.some((m) => m.toLowerCase().includes(q)))
+    }
+    return list
+  },
+
+  async regionStats(): Promise<RegionStat[]> {
+    await delay(160)
+    return Object.entries(regionGeo).map(([region, geo]) => ({
+      region,
+      listings: listings.filter((l) => l.region === region).length,
+      umkm: directory.filter((d) => d.region === region).length,
+      x: geo.x,
+      y: geo.y,
+    }))
   },
 
   async stats() {

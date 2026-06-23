@@ -22,6 +22,9 @@ const routes: RouteRecordRaw[] = [
   { path: '/cetak-biru/:id', name: 'blueprint-detail', component: () => import('@/views/blueprint/BlueprintDetailView.vue'), meta: { layout: 'public', title: 'Detail Cetak Biru' } },
   { path: '/pohon-nilai', name: 'value-tree', component: () => import('@/views/blueprint/ValueTreeView.vue'), meta: { layout: 'public', title: 'Pohon Nilai Kelapa' } },
   { path: '/tanya', name: 'tanya', component: () => import('@/views/blueprint/TanyaPakarView.vue'), meta: { layout: 'public', title: 'Tanya Pakar' } },
+  // Simbiosis industri
+  { path: '/bursa', name: 'bursa', component: () => import('@/views/community/BursaView.vue'), meta: { layout: 'public', title: 'Bursa Limbah' } },
+  { path: '/direktori', name: 'direktori', component: () => import('@/views/community/DirektoriView.vue'), meta: { layout: 'public', title: 'Direktori UMKM' } },
   // Wawasan/Cerita (eks-Artikel — naratif pendukung)
   { path: '/articles', name: 'articles', component: () => import('@/views/public/ArticlesView.vue'), meta: { layout: 'public', title: 'Wawasan' } },
   { path: '/articles/:id', name: 'article-detail', component: () => import('@/views/public/ArticleDetailView.vue'), meta: { layout: 'public', title: 'Detail Wawasan' } },
