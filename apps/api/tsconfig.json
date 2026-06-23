@@ -10,10 +10,10 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "src",
     "types": ["node"],
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["src/**/*.ts", "prisma/**/*.ts"]
+  "include": ["src/**/*.ts"]
 }

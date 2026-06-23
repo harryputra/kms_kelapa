@@ -1,0 +1,19 @@
+# ---- Build (Vite, mode produksi → backend nyata) ----
+FROM node:20-slim AS build
+WORKDIR /app
+RUN corepack enable
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY apps/web/package.json apps/web/package.json
+COPY apps/api/package.json apps/api/package.json
+RUN pnpm install --filter @coconexus/web --frozen-lockfile
+COPY apps/web apps/web
+# Bake env build-time: pakai backend nyata, base URL same-origin /api/v1
+ENV VITE_USE_MOCK=false
+ENV VITE_API_URL=/api/v1
+RUN pnpm --filter @coconexus/web build
+
+# ---- Runner (Nginx serve static + proxy /api) ----
+FROM nginx:1.27-alpine AS runner
+COPY infra/docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/apps/web/dist /usr/share/nginx/html
+EXPOSE 80

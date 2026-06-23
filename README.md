@@ -86,6 +86,29 @@ curl -X POST http://localhost:3000/api/v1/auth/login -H 'Content-Type: applicati
 
 Endpoint: `GET /health`, `POST /auth/{register,login,refresh,logout}`, `GET /auth/me`, `GET /blueprints`, `GET /blueprints/:id`, `GET /value-tree`. Envelope `{data, meta}` / error `{error:{code,message,details}}`.
 
+## 🚢 Deploy (Produksi, Docker)
+
+Stack penuh (MySQL + API + Web Nginx) sebagai container persisten — **bukan dev mode**.
+
+```bash
+# (opsional, WAJIB di server publik) ganti secret:
+export JWT_ACCESS_SECRET="$(openssl rand -hex 32)"
+export JWT_REFRESH_SECRET="$(openssl rand -hex 32)"
+export ADMIN_PASSWORD="kata-sandi-admin-asli"
+
+./run.sh deploy          # build + up -d (detached, restart: unless-stopped)
+./run.sh prod-logs       # lihat log (Ctrl+C keluar, app tetap jalan)
+./run.sh prod-down       # hentikan
+```
+
+- Web disajikan Nginx di **`127.0.0.1:8090`** dan mem‑proxy `/api` → container `api` (same‑origin, tanpa CORS). DB **tidak** diekspos publik.
+- Entrypoint API otomatis **sinkron skema + seed esensial** sebelum start (idempoten).
+- **Publikasi**: tambah Public Hostname di Cloudflare Tunnel → `subdomain.trin-polman.id` ke `localhost:8090` (tunnel meng‑handle HTTPS).
+- **Update/redeploy**: `git pull && ./run.sh deploy`.
+- Ukur TTFB: `curl -s -o /dev/null -w "TTFB:%{time_starttransfer} Total:%{time_total}\n" http://localhost:8090/api/v1/health`.
+
+> Image web di‑build dengan `VITE_USE_MOCK=false` → memakai backend nyata. Catatan: cookie refresh ber‑`Secure` (butuh HTTPS); di balik Cloudflare otomatis aman.
+
 ## 🔌 Mock ↔ Backend nyata
 
 Frontend memanggil satu **facade** (`src/api/index.ts`). Default memakai mock (`VITE_USE_MOCK=true`). Saat seluruh endpoint backend siap, set `VITE_USE_MOCK=false` + `VITE_API_URL=/api` di `apps/web/.env` dan pakai `src/api/http.ts` (axios: base URL relatif `/api`, interceptor, normalisasi error).

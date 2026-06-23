@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+.git
+**/*.log
+apps/web/dev-dist
+**/.vite
+infra/docker/*.md

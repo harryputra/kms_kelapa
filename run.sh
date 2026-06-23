@@ -1,145 +1,145 @@
 #!/usr/bin/env bash
 # =====================================================================
 #  COCONEXUS KMS v2.0 — one-click runner (Linux/macOS/Git Bash)
-#  Tahap saat ini: FRONTEND (Vue 3 + TS) dengan mock API in-memory.
-#  Backend (Express + Prisma + MySQL) & deploy Docker menyusul —
-#  lihat rencana_pengembangan.md §11.
+#  dev (default) : MySQL(Docker) + API(host) + Web(host) — backend nyata
+#  deploy/prod   : MySQL + API + Web semua container (persisten, auto-restart)
 # =====================================================================
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# ---- Warna (jika TTY) ----
-if [ -t 1 ]; then
-  C_G='\033[0;32m'; C_Y='\033[1;33m'; C_R='\033[0;31m'; C_B='\033[0;36m'; C_D='\033[2m'; C_N='\033[0m'
-else
-  C_G=''; C_Y=''; C_R=''; C_B=''; C_D=''; C_N=''
-fi
-info()  { printf "${C_B}➜${C_N} %s\n" "$1"; }
-ok()    { printf "${C_G}✓${C_N} %s\n" "$1"; }
-warn()  { printf "${C_Y}⚠${C_N} %s\n" "$1"; }
-err()   { printf "${C_R}✗${C_N} %s\n" "$1"; }
+if [ -t 1 ]; then C_G='\033[0;32m'; C_Y='\033[1;33m'; C_R='\033[0;31m'; C_B='\033[0;36m'; C_D='\033[2m'; C_N='\033[0m';
+else C_G=''; C_Y=''; C_R=''; C_B=''; C_D=''; C_N=''; fi
+info(){ printf "${C_B}➜${C_N} %s\n" "$1"; }
+ok(){ printf "${C_G}✓${C_N} %s\n" "$1"; }
+warn(){ printf "${C_Y}⚠${C_N} %s\n" "$1"; }
+err(){ printf "${C_R}✗${C_N} %s\n" "$1"; }
 
+COMPOSE="docker compose -f infra/docker-compose.yml"
 WEB_PORT="${PORT:-5173}"
-PREVIEW_PORT="${PREVIEW_PORT:-4173}"
+PROD_PORT=8090
 
-# ---- Prasyarat ----
-check_prereq() {
-  command -v node >/dev/null 2>&1 || { err "Node.js tidak ditemukan. Instal Node 20+: https://nodejs.org"; exit 1; }
-  local major; major="$(node -v | sed 's/v\([0-9]*\).*/\1/')"
-  [ "$major" -ge 20 ] || warn "Node $(node -v) terdeteksi — disarankan Node 20+."
-  if ! command -v pnpm >/dev/null 2>&1; then
-    warn "pnpm tidak ditemukan, mengaktifkan via corepack…"
-    corepack enable >/dev/null 2>&1 || { err "Gagal mengaktifkan pnpm. Jalankan: npm i -g pnpm"; exit 1; }
+check_prereq(){
+  command -v node >/dev/null 2>&1 || { err "Node.js tidak ada. Instal Node 20+."; exit 1; }
+  command -v docker >/dev/null 2>&1 || { err "Docker tidak ada / daemon mati. Nyalakan Docker Desktop."; exit 1; }
+  docker info >/dev/null 2>&1 || { err "Docker daemon tidak merespons. Nyalakan Docker."; exit 1; }
+  command -v pnpm >/dev/null 2>&1 || { warn "pnpm tidak ada, aktifkan via corepack…"; corepack enable >/dev/null 2>&1 || { err "Jalankan: npm i -g pnpm"; exit 1; }; }
+}
+
+ensure_env(){
+  [ -f apps/api/.env ] || { cp apps/api/.env.example apps/api/.env; ok "apps/api/.env dibuat dari contoh."; }
+  [ -f apps/web/.env ] || { cp apps/web/.env.example apps/web/.env; ok "apps/web/.env dibuat dari contoh."; }
+}
+
+wait_mysql(){
+  info "Menunggu MySQL siap…"
+  for _ in $(seq 1 40); do
+    [ "$(docker inspect --format '{{.State.Health.Status}}' coconexus-mysql 2>/dev/null)" = "healthy" ] && { ok "MySQL siap."; return 0; }
+    sleep 2
+  done
+  err "MySQL tidak kunjung siap."; exit 1
+}
+
+port_in_use(){ if command -v ss >/dev/null 2>&1; then ss -ltn 2>/dev/null | grep -q ":$1 "; else netstat -an 2>/dev/null | grep -q "[:.]$1 .*LISTEN"; fi; }
+
+secret_check(){
+  if [ -z "${JWT_ACCESS_SECRET:-}" ] || [ "${ADMIN_PASSWORD:-Admin#1234}" = "Admin#1234" ]; then
+    warn "Secret produksi masih default (JWT_*/ADMIN_PASSWORD)."
+    warn "Sebelum publik: export JWT_ACCESS_SECRET=… JWT_REFRESH_SECRET=… ADMIN_PASSWORD=… lalu deploy ulang."
   fi
 }
 
-# ---- Auto-config .env ----
-ensure_env() {
-  if [ ! -f apps/web/.env ]; then
-    cp apps/web/.env.example apps/web/.env
-    ok "apps/web/.env dibuat dari .env.example (mode mock aktif)."
-  fi
+api_db_setup(){
+  info "Menyiapkan database (generate + push + seed)…"
+  pnpm --filter @coconexus/api db:generate >/dev/null
+  pnpm --filter @coconexus/api db:push
+  pnpm --filter @coconexus/api db:seed
 }
 
-# ---- Install deps (idempotent) ----
-install_deps() {
-  if [ ! -d node_modules ] || [ ! -d apps/web/node_modules ]; then
-    info "Memasang dependensi (pnpm install)…"
-    pnpm install
-    ok "Dependensi terpasang."
-  else
-    ok "Dependensi sudah terpasang (lewati)."
-  fi
-}
-
-# ---- Cek port bentrok ----
-port_in_use() {
-  local p="$1"
-  if command -v ss >/dev/null 2>&1; then ss -ltn 2>/dev/null | grep -q ":$p ";
-  elif command -v lsof >/dev/null 2>&1; then lsof -iTCP:"$p" -sTCP:LISTEN >/dev/null 2>&1;
-  else netstat -an 2>/dev/null | grep -q "[:.]$p .*LISTEN"; fi
-}
-
-summary() {
-  echo ""
+summary_dev(){
+  echo ""; printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n"
+  printf "  ${C_G}COCONEXUS — DEV (backend nyata)${C_N}\n"
   printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n"
-  printf "  ${C_G}COCONEXUS KMS — Frontend siap!${C_N}\n"
-  printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n"
-  echo "  URL Dev      : http://localhost:${WEB_PORT}"
+  echo "  Web : http://localhost:${WEB_PORT}     API : http://localhost:3000/api/v1"
   echo ""
-  printf "  ${C_B}Quick Login (demo):${C_N}\n"
-  echo "    • Admin     : admin@coconexus.test     / Admin#1234"
-  echo "    • Moderator : moderator@coconexus.test / Mod#1234"
-  echo "    • Pengguna  : user@coconexus.test      / User#1234"
-  echo "    (tersedia juga tombol Quick Login di halaman /login)"
-  echo ""
-  printf "  ${C_D}Stop: Ctrl+C  ·  Bantuan: ./run.sh help${C_N}\n"
+  printf "  ${C_B}Quick Login:${C_N} admin@coconexus.test / Admin#1234  ·  user@coconexus.test / User#1234"
+  echo ""; printf "  ${C_D}Stop: Ctrl+C  ·  DB tetap jalan (./run.sh down untuk stop MySQL)${C_N}\n"
   printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n\n"
 }
 
-cmd_up() {
-  check_prereq; ensure_env; install_deps
-  if port_in_use "$WEB_PORT"; then
-    warn "Port ${WEB_PORT} sudah dipakai. Mungkin app ini sudah jalan."
-    warn "Ganti port: PORT=5174 ./run.sh  (atau hentikan proses yang memakai port)."
-    exit 1
-  fi
-  summary
-  info "Menjalankan dev server (mode DEV lokal)…"
-  PORT="$WEB_PORT" pnpm --filter @coconexus/web dev -- --port "$WEB_PORT"
+cmd_up(){
+  check_prereq; ensure_env
+  if port_in_use "$WEB_PORT"; then warn "Port ${WEB_PORT} dipakai — mungkin app sudah jalan. Ganti: PORT=5174 ./run.sh"; exit 1; fi
+  $COMPOSE up -d mysql; wait_mysql
+  info "Memasang dependensi…"; pnpm install
+  api_db_setup
+  # Web dev memakai backend nyata (override gitignored)
+  printf "VITE_USE_MOCK=false\nVITE_API_URL=/api/v1\n" > apps/web/.env.local
+  summary_dev
+  info "Menjalankan API + Web (dev)…"
+  PORT="$WEB_PORT" pnpm -r --parallel run dev
 }
 
-cmd_build()   { check_prereq; ensure_env; install_deps; info "Build produksi…"; pnpm --filter @coconexus/web build; ok "Hasil build di apps/web/dist"; }
-cmd_preview() { cmd_build; info "Menyajikan hasil build di http://localhost:${PREVIEW_PORT}"; pnpm --filter @coconexus/web preview -- --port "$PREVIEW_PORT"; }
-cmd_typecheck(){ check_prereq; install_deps; pnpm --filter @coconexus/web typecheck && ok "Typecheck lolos."; }
-
-cmd_deploy() {
-  warn "Deploy produksi PENUH (Docker + backend + Cloudflare Tunnel) tersedia setelah"
-  warn "backend dibangun — lihat rencana_pengembangan.md §11."
-  info "Sementara ini, build statis frontend (apps/web/dist) bisa disajikan web server apa pun."
-  cmd_build
-}
-
-cmd_clean() {
-  warn "Menghapus node_modules & dist…"
-  rm -rf node_modules apps/web/node_modules apps/web/dist
-  ok "Bersih. Jalankan ./run.sh untuk setup ulang."
-}
-
-cmd_doctor() {
-  echo "Node    : $(node -v 2>/dev/null || echo 'TIDAK ADA')"
-  echo "pnpm    : $(pnpm -v 2>/dev/null || echo 'TIDAK ADA')"
-  echo ".env    : $([ -f apps/web/.env ] && echo 'ada' || echo 'belum (akan dibuat otomatis)')"
-  echo "deps    : $([ -d apps/web/node_modules ] && echo 'terpasang' || echo 'belum')"
-}
-
-cmd_help() {
-  cat <<EOF
-COCONEXUS KMS — runner (frontend)
-
-Penggunaan: ./run.sh [perintah]
-
-  (kosong) | up   Setup penuh + jalankan DEV lokal (default)
-  build           Build produksi (apps/web/dist)
-  preview         Build lalu sajikan hasil build (port ${PREVIEW_PORT})
-  typecheck       Cek tipe TypeScript (vue-tsc)
-  deploy | prod   Info deploy produksi + build statis (Docker menyusul)
-  clean           Hapus node_modules & dist
-  doctor          Diagnosa lingkungan
-  help            Tampilkan bantuan ini
-
-Variabel: PORT=5174 ./run.sh   (ganti port dev)
-EOF
+cmd_deploy(){
+  check_prereq; secret_check
+  if port_in_use "$PROD_PORT"; then warn "Port ${PROD_PORT} dipakai. Hentikan layanan lain atau ubah port di compose."; fi
+  info "Build & start stack PRODUKSI (mysql + api + web)…"
+  $COMPOSE --profile prod up -d --build
+  info "Menunggu web siap…"
+  for _ in $(seq 1 40); do curl -sf -o /dev/null "http://localhost:${PROD_PORT}/" && break; sleep 2; done
+  echo ""; printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n"
+  printf "  ${C_G}COCONEXUS — PRODUKSI aktif (detached, auto-restart)${C_N}\n"
+  printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n"
+  echo "  Lokal  : http://localhost:${PROD_PORT}"
+  echo "  Publik : tambah Public Hostname Cloudflare → localhost:${PROD_PORT}"
+  echo "           (mis. kms.trin-polman.id)"
+  echo ""
+  echo "  Cek TTFB:"
+  echo "    curl -s -o /dev/null -w 'TTFB:%{time_starttransfer} Total:%{time_total}\\n' http://localhost:${PROD_PORT}/api/v1/health"
+  echo ""
+  printf "  ${C_D}Log: ./run.sh prod-logs  ·  Stop: ./run.sh prod-down  ·  Update: git pull && ./run.sh deploy${C_N}\n"
+  printf "${C_G}════════════════════════════════════════════════════════════${C_N}\n\n"
 }
 
 case "${1:-up}" in
-  up|"")       cmd_up ;;
-  build)       cmd_build ;;
-  preview)     cmd_preview ;;
-  typecheck)   cmd_typecheck ;;
-  deploy|prod) cmd_deploy ;;
-  clean)       cmd_clean ;;
-  doctor)      cmd_doctor ;;
-  help|-h|--help) cmd_help ;;
-  *) err "Perintah tidak dikenal: $1"; cmd_help; exit 1 ;;
+  up|"")        cmd_up ;;
+  deploy|prod)  cmd_deploy ;;
+  prod-logs)    $COMPOSE --profile prod logs -f ;;
+  prod-down)    $COMPOSE --profile prod down ;;
+  prod-restart) $COMPOSE --profile prod restart ;;
+  down)         $COMPOSE down ;;
+  seed)         pnpm --filter @coconexus/api db:seed ;;
+  build)        check_prereq; pnpm install; pnpm -r build; ok "Build selesai." ;;
+  doctor)
+    echo "Node   : $(node -v 2>/dev/null || echo TIDAK ADA)"
+    echo "pnpm   : $(pnpm -v 2>/dev/null || echo TIDAK ADA)"
+    echo "Docker : $(docker info --format '{{.ServerVersion}}' 2>/dev/null || echo 'mati/tidak ada')"
+    echo "MySQL  : $(docker inspect --format '{{.State.Health.Status}}' coconexus-mysql 2>/dev/null || echo 'belum jalan')"
+    ;;
+  clean)
+    warn "Menghapus node_modules, dist, dan .env.local web…"
+    rm -rf node_modules apps/*/node_modules apps/web/dist apps/web/.env.local apps/api/dist
+    ok "Bersih."
+    ;;
+  help|-h|--help)
+    cat <<EOF
+COCONEXUS — runner
+
+Penggunaan: ./run.sh [perintah]
+
+  (kosong)|up   DEV: MySQL(Docker) + API + Web (backend nyata) [default]
+  deploy|prod   PRODUKSI: semua container, detached + auto-restart
+  prod-logs     Lihat log produksi (Ctrl+C keluar, app tetap jalan)
+  prod-down     Hentikan stack produksi
+  prod-restart  Restart stack produksi
+  down          Stop MySQL (dev)
+  seed          Jalankan ulang seed database
+  build         Build api + web
+  doctor        Diagnosa lingkungan
+  clean         Hapus node_modules/dist/.env.local
+  help          Bantuan ini
+
+Secret produksi: export JWT_ACCESS_SECRET / JWT_REFRESH_SECRET / ADMIN_PASSWORD sebelum 'deploy'.
+EOF
+    ;;
+  *) err "Perintah tidak dikenal: $1"; exit 1 ;;
 esac
