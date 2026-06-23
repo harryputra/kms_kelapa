@@ -20,6 +20,45 @@ http.interceptors.request.use((config) => {
   return config
 })
 
+// Auto-refresh: pada 401, coba tukar refresh-cookie → access token baru, ulangi sekali.
+let refreshing: Promise<string | null> | null = null
+function doRefresh(): Promise<string | null> {
+  if (!refreshing) {
+    refreshing = http
+      .post('/auth/refresh')
+      .then((r) => {
+        const t = r.data?.data?.access_token as string | undefined
+        setAccessToken(t ?? null)
+        return t ?? null
+      })
+      .catch(() => {
+        setAccessToken(null)
+        return null
+      })
+      .finally(() => {
+        refreshing = null
+      })
+  }
+  return refreshing
+}
+
+http.interceptors.response.use(
+  (r) => r,
+  async (error) => {
+    const original = error.config
+    const url: string = original?.url ?? ''
+    if (error.response?.status === 401 && original && !original._retry && !url.includes('/auth/')) {
+      original._retry = true
+      const token = await doRefresh()
+      if (token) {
+        original.headers.Authorization = `Bearer ${token}`
+        return http(original)
+      }
+    }
+    return Promise.reject(error)
+  },
+)
+
 // Bedakan error JARINGAN ("tidak bisa menghubungi server") vs error HTTP (401/500).
 export interface NormalizedError {
   status: number | null

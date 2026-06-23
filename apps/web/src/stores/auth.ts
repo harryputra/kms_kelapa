@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { api, setAccessToken } from '@/api'
+import { api, setAccessToken, USE_MOCK } from '@/api'
 import type { Role, UserProfileDetail } from '@/types'
 
 const UID_KEY = 'coco_uid'
@@ -23,15 +23,23 @@ export const useAuthStore = defineStore('auth', () => {
       .toUpperCase(),
   )
 
-  /** Pulihkan sesi (mock: dari localStorage). Dipanggil sekali saat app boot. */
+  /** Pulihkan sesi saat app boot. Mock: dari localStorage. Nyata: refresh cookie → me(). */
   async function bootstrap() {
-    const uid = Number(localStorage.getItem(UID_KEY))
-    if (uid) {
-      api.setSession(uid)
+    if (USE_MOCK) {
+      const uid = Number(localStorage.getItem(UID_KEY))
+      if (uid) {
+        api.setSession(uid)
+        try {
+          user.value = await api.me()
+        } catch {
+          clearSession()
+        }
+      }
+    } else {
       try {
-        user.value = await api.me()
+        user.value = await api.me() // me() akan auto-refresh dari cookie bila perlu
       } catch {
-        clearSession()
+        /* belum login */
       }
     }
     ready.value = true
@@ -43,7 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
       const res = await api.login(email, password)
       setAccessToken(res.access_token)
       user.value = res.user
-      localStorage.setItem(UID_KEY, String(res.user.id))
+      if (USE_MOCK) localStorage.setItem(UID_KEY, String(res.user.id))
       return res.user
     } finally {
       loading.value = false
