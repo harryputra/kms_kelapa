@@ -13,6 +13,10 @@ import type {
   BlueprintFull,
   BlueprintSummary,
   Category,
+  QnaAnswer,
+  QnaQuestion,
+  ReplicationInput,
+  ReplicationReport,
   Comment,
   ContentTemplate,
   ForumReply,
@@ -31,6 +35,7 @@ import type {
 } from '@/types'
 import * as db from './data'
 import { blueprintsFull, valueNodes } from './blueprints'
+import { questions, reportsByBlueprint } from './community'
 
 const delay = (ms = 320) => new Promise((r) => setTimeout(r, ms))
 
@@ -471,10 +476,110 @@ export const mockApi = {
       isBookmarked: false,
       replications: { success: 0, partial: 0, fail: 0 },
       variants: [],
+      versions: [{ version: 1, changelog: 'Versi awal (kontribusi).', author: db.pub(author.id), createdAt: new Date().toISOString() }],
       stats: { views: 0, saves: 0, replications: 0, successRate: 0 },
     }
     blueprintsFull.unshift(created)
     return created
+  },
+
+  // ---- Validasi lapangan: laporan replikasi ----
+  async getReplications(blueprintId: number): Promise<ReplicationReport[]> {
+    await delay(200)
+    return [...(reportsByBlueprint[blueprintId] ?? [])]
+  },
+
+  async addReplicationReport(blueprintId: number, input: ReplicationInput): Promise<BlueprintFull> {
+    await delay(320)
+    const b = blueprintsFull.find((x) => x.id === blueprintId)
+    if (!b) throw new ApiError(404, 'Cetak biru tidak ditemukan.')
+    if (!currentUserId) throw new ApiError(401, 'Anda harus login.')
+    b.replications[input.outcome] += 1
+    const total = b.replications.success + b.replications.partial + b.replications.fail
+    b.stats.replications = total
+    b.stats.successRate = total ? Math.round((b.replications.success / total) * 100) : 0
+    // promosikan kematangan bila terbukti di lapangan
+    if (b.maturity === 'curated' && b.replications.success >= 5 && b.stats.successRate >= 60) b.maturity = 'validated'
+    const list = reportsByBlueprint[blueprintId] ?? (reportsByBlueprint[blueprintId] = [])
+    list.unshift({
+      id: Date.now(),
+      user: db.pub(currentUserId),
+      outcome: input.outcome,
+      note: input.note,
+      costReal: input.costReal,
+      photoSeed: input.photoSeed,
+      createdAt: new Date().toISOString(),
+    })
+    return { ...b }
+  },
+
+  async proposeVariant(blueprintId: number, region: string, title: string): Promise<BlueprintFull> {
+    await delay(220)
+    const b = blueprintsFull.find((x) => x.id === blueprintId)
+    if (!b) throw new ApiError(404, 'Cetak biru tidak ditemukan.')
+    b.variants.unshift({ id: Date.now(), region, title })
+    return { ...b }
+  },
+
+  // ---- Tanya Pakar (Q&A) ----
+  async listQuestions(blueprintId?: number | null): Promise<QnaQuestion[]> {
+    await delay()
+    const list = blueprintId ? questions.filter((q) => q.blueprintId === blueprintId) : questions
+    return list.map((q) => ({ ...q, answers: [...q.answers] }))
+  },
+
+  async askQuestion(blueprintId: number | null, blueprintTitle: string | null, title: string, content: string): Promise<QnaQuestion> {
+    await delay(300)
+    if (!currentUserId) throw new ApiError(401, 'Anda harus login.')
+    const q: QnaQuestion = {
+      id: Date.now(),
+      blueprintId,
+      blueprintTitle,
+      user: db.pub(currentUserId),
+      title,
+      content,
+      solved: false,
+      createdAt: new Date().toISOString(),
+      answers: [],
+    }
+    questions.unshift(q)
+    return q
+  },
+
+  async answerQuestion(questionId: number, content: string): Promise<QnaAnswer> {
+    await delay(260)
+    const q = questions.find((x) => x.id === questionId)
+    if (!q) throw new ApiError(404, 'Pertanyaan tidak ditemukan.')
+    if (!currentUserId) throw new ApiError(401, 'Anda harus login.')
+    const user = db.users.find((u) => u.id === currentUserId)!
+    const a: QnaAnswer = {
+      id: Date.now(),
+      user: db.pub(user.id),
+      content,
+      votes: 0,
+      isBest: false,
+      isExpert: user.role === 'moderator' || user.role === 'admin',
+      myVote: false,
+      createdAt: new Date().toISOString(),
+    }
+    q.answers.push(a)
+    return a
+  },
+
+  async voteAnswer(questionId: number, answerId: number): Promise<void> {
+    await delay(120)
+    const a = questions.find((q) => q.id === questionId)?.answers.find((x) => x.id === answerId)
+    if (!a) return
+    a.myVote = !a.myVote
+    a.votes += a.myVote ? 1 : -1
+  },
+
+  async markBestAnswer(questionId: number, answerId: number): Promise<void> {
+    await delay(160)
+    const q = questions.find((x) => x.id === questionId)
+    if (!q) return
+    q.answers.forEach((a) => (a.isBest = a.id === answerId))
+    q.solved = true
   },
 
   async submittedBlueprints(): Promise<BlueprintSummary[]> {

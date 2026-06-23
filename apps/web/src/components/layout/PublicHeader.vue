@@ -15,6 +15,7 @@ const nav = [
   { label: 'Beranda', to: '/' },
   { label: 'Cetak Biru', to: '/cetak-biru' },
   { label: 'Pohon Nilai', to: '/pohon-nilai' },
+  { label: 'Tanya Pakar', to: '/tanya' },
   { label: 'Wawasan', to: '/articles' },
   { label: 'Forum', to: '/forum' },
 ]
@@ -26,7 +27,7 @@ const isActive = (to: string) => (to === '/' ? route.path === '/' : route.path.s
     <div class="container-page flex h-16 items-center justify-between gap-4">
       <div class="flex items-center gap-8">
         <BrandLogo />
-        <nav class="hidden items-center gap-1 md:flex">
+        <nav class="hidden items-center gap-1 lg:flex">
           <RouterLink
             v-for="item in nav"
             :key="item.to"
@@ -48,14 +49,14 @@ const isActive = (to: string) => (to === '/' ? route.path === '/' : route.path.s
           <RouterLink to="/login" class="btn-ghost btn-md hidden sm:inline-flex">Masuk</RouterLink>
           <RouterLink to="/register" class="btn-primary btn-md">Daftar Gratis</RouterLink>
         </template>
-        <button class="btn-ghost btn-md h-10 w-10 !px-0 md:hidden" aria-label="Menu" @click="mobileOpen = !mobileOpen">
+        <button class="btn-ghost btn-md h-10 w-10 !px-0 lg:hidden" aria-label="Menu" @click="mobileOpen = !mobileOpen">
           <component :is="mobileOpen ? X : Menu" class="h-5 w-5" />
         </button>
       </div>
     </div>
 
     <Transition name="slide">
-      <nav v-if="mobileOpen" class="border-t border-line bg-surface md:hidden">
+      <nav v-if="mobileOpen" class="border-t border-line bg-surface lg:hidden">
         <div class="container-page flex flex-col py-2">
           <RouterLink
             v-for="item in nav"

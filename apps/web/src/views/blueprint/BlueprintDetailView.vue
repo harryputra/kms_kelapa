@@ -1,25 +1,29 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import {
   ArrowLeft, Bookmark, BookmarkCheck, Wallet, Clock, BarChart3, ShieldAlert,
   ListChecks, FlaskConical, Timer, Thermometer, Scale, CheckCircle2, Repeat2,
-  GitBranch, Share2, Sparkles,
+  GitBranch, Share2, Sparkles, MessageCircleQuestion, History, Image as ImageIcon, Plus,
 } from 'lucide-vue-next'
 import { api, ApiError } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import type { BlueprintFull, BlueprintSummary } from '@/types'
+import type { BlueprintFull, BlueprintSummary, ReplicationReport } from '@/types'
 import { CAPITAL, DIFFICULTY, WASTE, formatRupiah } from '@/lib/blueprint'
+import { gradientFor, relativeTime, formatDate } from '@/lib/format'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import ArticleCover from '@/components/ui/ArticleCover.vue'
 import LoadingBlock from '@/components/ui/LoadingBlock.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import AppInput from '@/components/ui/AppInput.vue'
+import AppTextarea from '@/components/ui/AppTextarea.vue'
 import MaturityBadge from '@/components/common/MaturityBadge.vue'
 import MaturityMeter from '@/components/common/MaturityMeter.vue'
 import BlueprintCalculator from '@/components/common/BlueprintCalculator.vue'
 import BlueprintCard from '@/components/common/BlueprintCard.vue'
+import QnaSection from '@/components/common/QnaSection.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -31,17 +35,27 @@ const related = ref<BlueprintSummary[]>([])
 const loading = ref(true)
 const id = computed(() => Number(route.params.id))
 
-type Tab = 'langkah' | 'ekonomi' | 'mutu' | 'validasi'
+type Tab = 'langkah' | 'ekonomi' | 'mutu' | 'validasi' | 'tanya'
 const tab = ref<Tab>('langkah')
 const tabs: { key: Tab; label: string; icon: unknown }[] = [
   { key: 'langkah', label: 'Bahan & Langkah', icon: ListChecks },
   { key: 'ekonomi', label: 'Ekonomi', icon: BarChart3 },
   { key: 'mutu', label: 'Mutu & K3', icon: ShieldAlert },
   { key: 'validasi', label: 'Validasi', icon: CheckCircle2 },
+  { key: 'tanya', label: 'Tanya Pakar', icon: MessageCircleQuestion },
 ]
 
 const done = ref<Set<number>>(new Set())
+const reports = ref<ReplicationReport[]>([])
+
+// Modal "Sudah Saya Coba"
 const replicateOpen = ref(false)
+const repForm = reactive({ outcome: 'success' as 'success' | 'partial' | 'fail', note: '', costReal: null as number | null, photoSeed: '' })
+
+// Modal "Usulkan Varian"
+const variantOpen = ref(false)
+const variantForm = reactive({ region: '', title: '' })
+const processing = ref(false)
 
 function toggleStep(order: number) {
   if (done.value.has(order)) done.value.delete(order)
@@ -57,6 +71,7 @@ async function load() {
     related.value = (await api.listBlueprints({ wasteKind: bp.value.wasteKind }))
       .filter((x) => x.id !== id.value)
       .slice(0, 3)
+    reports.value = await api.getReplications(id.value)
   } catch (e) {
     ui.error(e instanceof ApiError ? e.message : 'Gagal memuat.')
     router.replace('/cetak-biru')
@@ -72,11 +87,54 @@ async function toggleBookmark() {
   ui.success(res.bookmarked ? 'Disimpan ke Bacaan Saya.' : 'Bookmark dihapus.')
 }
 
-async function replicate(outcome: 'success' | 'partial' | 'fail') {
-  if (!bp.value) return
-  bp.value = await api.addReplication(id.value, outcome)
-  replicateOpen.value = false
-  ui.success('Terima kasih! Laporan praktik Anda memperkuat validasi cetak biru ini.')
+function openReplicate() {
+  if (!auth.isAuthenticated) return ui.warning('Login untuk melaporkan praktik.')
+  repForm.outcome = 'success'
+  repForm.note = ''
+  repForm.costReal = null
+  repForm.photoSeed = ''
+  replicateOpen.value = true
+}
+async function submitReplicate() {
+  if (!repForm.note.trim()) return ui.error('Ceritakan sedikit hasil praktik Anda.')
+  processing.value = true
+  try {
+    bp.value = await api.addReplicationReport(id.value, {
+      outcome: repForm.outcome,
+      note: repForm.note.trim(),
+      costReal: repForm.costReal,
+      photoSeed: repForm.photoSeed.trim() || (repForm.outcome + '-' + Date.now()),
+    })
+    reports.value = await api.getReplications(id.value)
+    replicateOpen.value = false
+    ui.success('Terima kasih! Laporan praktik Anda memperkuat validasi cetak biru ini.')
+  } finally {
+    processing.value = false
+  }
+}
+
+function openVariant() {
+  if (!auth.isAuthenticated) return ui.warning('Login untuk mengusulkan varian.')
+  variantForm.region = ''
+  variantForm.title = ''
+  variantOpen.value = true
+}
+async function submitVariant() {
+  if (!variantForm.region.trim() || !variantForm.title.trim()) return ui.error('Lengkapi daerah & deskripsi varian.')
+  processing.value = true
+  try {
+    bp.value = await api.proposeVariant(id.value, variantForm.region.trim(), variantForm.title.trim())
+    variantOpen.value = false
+    ui.success('Usulan varian terkirim. Terima kasih telah menyempurnakan pengetahuan!')
+  } finally {
+    processing.value = false
+  }
+}
+
+const REP_OUTCOME = {
+  success: { label: 'Berhasil', chip: 'bg-success/10 text-success' },
+  partial: { label: 'Sebagian', chip: 'bg-warning/15 text-gold-700' },
+  fail: { label: 'Belum berhasil', chip: 'bg-danger/10 text-danger' },
 }
 
 function share() {
@@ -237,20 +295,62 @@ onMounted(load)
               <p class="font-display font-semibold text-ink">Sudah pernah mempraktikkan cetak biru ini?</p>
               <p class="text-sm text-muted">Laporkan hasil Anda — bukti lapangan meningkatkan kematangan & membantu UMKM lain.</p>
             </div>
-            <AppButton @click="auth.isAuthenticated ? (replicateOpen = true) : ui.warning('Login untuk melaporkan praktik.')">
-              <template #icon><Sparkles class="h-4 w-4" /></template> Sudah Saya Coba
-            </AppButton>
+            <AppButton @click="openReplicate"><template #icon><Sparkles class="h-4 w-4" /></template> Sudah Saya Coba</AppButton>
           </div>
 
-          <div v-if="bp.variants.length" class="premium-card p-5">
-            <h3 class="mb-3 flex items-center gap-2 font-display font-semibold text-ink"><GitBranch class="h-4.5 w-4.5 text-primary-600" /> Varian Daerah</h3>
-            <ul class="space-y-2">
+          <!-- Galeri bukti lapangan -->
+          <div v-if="reports.length" class="premium-card p-5">
+            <h3 class="mb-4 flex items-center gap-2 font-display font-semibold text-ink"><ImageIcon class="h-4.5 w-4.5 text-primary-600" /> Bukti Praktik Lapangan ({{ reports.length }})</h3>
+            <ul class="space-y-4">
+              <li v-for="r in reports" :key="r.id" class="flex gap-3">
+                <div v-if="r.photoSeed" :class="gradientFor(r.photoSeed || '')" class="hidden h-20 w-24 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white/40 sm:flex">
+                  <ImageIcon class="h-7 w-7" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="mb-1 flex flex-wrap items-center gap-2">
+                    <AppAvatar :name="r.user.display_name" size="sm" />
+                    <span class="text-sm font-semibold text-ink">{{ r.user.display_name }}</span>
+                    <span class="chip" :class="REP_OUTCOME[r.outcome].chip">{{ REP_OUTCOME[r.outcome].label }}</span>
+                    <span class="text-xs text-muted">· {{ relativeTime(r.createdAt) }}</span>
+                  </div>
+                  <p class="text-sm text-ink/90">{{ r.note }}</p>
+                  <p v-if="r.costReal" class="mt-1 text-xs text-muted">Biaya nyata: <span class="font-medium text-ink">{{ formatRupiah(r.costReal) }}</span></p>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Varian daerah + usul -->
+          <div class="premium-card p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <h3 class="flex items-center gap-2 font-display font-semibold text-ink"><GitBranch class="h-4.5 w-4.5 text-primary-600" /> Varian Daerah</h3>
+              <button class="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:underline" @click="openVariant"><Plus class="h-4 w-4" /> Usulkan</button>
+            </div>
+            <ul v-if="bp.variants.length" class="space-y-2">
               <li v-for="v in bp.variants" :key="v.id" class="flex items-center gap-3 rounded-xl bg-canvas p-3">
                 <span class="chip bg-info/10 text-info">{{ v.region }}</span>
                 <span class="text-sm text-ink">{{ v.title }}</span>
               </li>
             </ul>
+            <p v-else class="text-sm text-muted">Belum ada varian. Punya cara berbeda yang berhasil di daerah Anda? Usulkan!</p>
           </div>
+
+          <!-- Riwayat versi -->
+          <div class="premium-card p-5">
+            <h3 class="mb-4 flex items-center gap-2 font-display font-semibold text-ink"><History class="h-4.5 w-4.5 text-primary-600" /> Riwayat Versi</h3>
+            <ol class="relative space-y-4 border-l-2 border-line pl-5">
+              <li v-for="v in [...bp.versions].reverse()" :key="v.version" class="relative">
+                <span class="absolute -left-[27px] flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-[10px] font-bold text-primary-700 ring-4 ring-surface">{{ v.version }}</span>
+                <p class="text-sm text-ink">{{ v.changelog }}</p>
+                <p class="text-xs text-muted">{{ v.author.display_name }} · {{ formatDate(v.createdAt) }}</p>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- TAB: Tanya Pakar -->
+        <section v-show="tab === 'tanya'" class="mt-6">
+          <QnaSection v-if="tab === 'tanya'" :blueprint-id="bp.id" :blueprint-title="bp.title" />
         </section>
       </div>
 
@@ -292,22 +392,44 @@ onMounted(load)
     </section>
 
     <!-- Modal "Sudah Saya Coba" -->
-    <AppModal :open="replicateOpen" title="Laporkan Hasil Praktik" size="sm" @close="replicateOpen = false">
-      <p class="mb-4 text-sm text-muted">Bagaimana hasil ketika Anda mempraktikkan cetak biru ini?</p>
-      <div class="space-y-2">
-        <button class="flex w-full items-center gap-3 rounded-xl border border-line p-3 text-left transition-colors hover:border-success hover:bg-success/5" @click="replicate('success')">
-          <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success">✓</span>
-          <div><p class="text-sm font-medium text-ink">Berhasil</p><p class="text-xs text-muted">Sesuai harapan</p></div>
-        </button>
-        <button class="flex w-full items-center gap-3 rounded-xl border border-line p-3 text-left transition-colors hover:border-warning hover:bg-warning/5" @click="replicate('partial')">
-          <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-warning/15 text-gold-700">≈</span>
-          <div><p class="text-sm font-medium text-ink">Sebagian berhasil</p><p class="text-xs text-muted">Ada kendala/modifikasi</p></div>
-        </button>
-        <button class="flex w-full items-center gap-3 rounded-xl border border-line p-3 text-left transition-colors hover:border-danger hover:bg-danger/5" @click="replicate('fail')">
-          <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-danger/10 text-danger">✕</span>
-          <div><p class="text-sm font-medium text-ink">Belum berhasil</p><p class="text-xs text-muted">Perlu penyempurnaan</p></div>
-        </button>
+    <AppModal :open="replicateOpen" title="Laporkan Hasil Praktik" size="md" @close="replicateOpen = false">
+      <div class="space-y-4">
+        <div>
+          <label class="label">Hasil praktik</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button v-for="o in (['success','partial','fail'] as const)" :key="o" class="rounded-xl border p-3 text-center text-sm font-medium transition-colors" :class="repForm.outcome === o ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-line text-muted hover:border-primary-200'" @click="repForm.outcome = o">
+              {{ REP_OUTCOME[o].label }}
+            </button>
+          </div>
+        </div>
+        <AppTextarea id="rn" v-model="repForm.note" label="Ceritakan pengalaman Anda" :rows="3" placeholder="mis. Briket nyala stabil; saya modifikasi perekat jadi 6%…" required />
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div><label class="label">Biaya nyata (opsional)</label><input v-model.number="repForm.costReal" type="number" min="0" class="field" placeholder="Rp" /></div>
+          <div>
+            <label class="label">Foto bukti (opsional)</label>
+            <button type="button" class="flex w-full items-center gap-2 rounded-xl border border-dashed border-line p-2.5 text-sm text-muted transition-colors hover:border-primary-300" @click="repForm.photoSeed = 'foto-' + Date.now()">
+              <ImageIcon class="h-4 w-4" /> {{ repForm.photoSeed ? 'Foto terlampir ✓' : 'Lampirkan foto' }}
+            </button>
+          </div>
+        </div>
       </div>
+      <template #footer>
+        <AppButton variant="ghost" @click="replicateOpen = false">Batal</AppButton>
+        <AppButton :loading="processing" @click="submitReplicate"><template #icon><Sparkles class="h-4 w-4" /></template>Kirim Laporan</AppButton>
+      </template>
+    </AppModal>
+
+    <!-- Modal "Usulkan Varian" -->
+    <AppModal :open="variantOpen" title="Usulkan Varian Daerah" size="sm" @close="variantOpen = false">
+      <p class="mb-3 text-sm text-muted">Punya cara berbeda yang berhasil di daerah Anda? Bagikan agar pengetahuan berkembang.</p>
+      <div class="space-y-3">
+        <AppInput id="vr" v-model="variantForm.region" label="Daerah" placeholder="mis. Sulawesi Selatan" required />
+        <AppInput id="vt" v-model="variantForm.title" label="Ringkasan varian" placeholder="mis. Karbonisasi pakai tungku drum vertikal" required />
+      </div>
+      <template #footer>
+        <AppButton variant="ghost" @click="variantOpen = false">Batal</AppButton>
+        <AppButton :loading="processing" @click="submitVariant"><template #icon><GitBranch class="h-4 w-4" /></template>Kirim Usulan</AppButton>
+      </template>
     </AppModal>
   </div>
 </template>

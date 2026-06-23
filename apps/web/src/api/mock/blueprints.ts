@@ -1,6 +1,16 @@
 // Mock data Cetak Biru Teknis + Pohon Nilai Kelapa (ontologi limbah→produk).
-import type { BlueprintFull, ValueNode } from '@/types'
+import type { BlueprintFull, BlueprintVersion, ValueNode } from '@/types'
 import { pub } from './data'
+
+const dAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString()
+
+function makeVersions(b: Omit<BlueprintFull, 'status' | 'versions'>): BlueprintVersion[] {
+  const v: BlueprintVersion[] = [{ version: 1, changelog: 'Versi awal dipublikasikan.', author: b.author, createdAt: dAgo(40) }]
+  if (b.maturity === 'validated' || b.maturity === 'standard') {
+    v.push({ version: 2, changelog: 'Penyempurnaan takaran & catatan K3 dari masukan komunitas.', author: pub(2), createdAt: dAgo(12) })
+  }
+  return v
+}
 
 // ---- Pohon Nilai (ontologi domain) ----
 export const valueNodes: ValueNode[] = [
@@ -29,7 +39,7 @@ export const valueNodes: ValueNode[] = [
 const longSummary =
   'Cetak biru ini merangkum praktik lapangan terstruktur — bahan, langkah, parameter mutu, K3, hingga hitungan ekonomi — agar UMKM dapat mereplikasi dan menskalakan dengan percaya diri.'
 
-const blueprintSeeds: Omit<BlueprintFull, 'status'>[] = [
+const blueprintSeeds: Omit<BlueprintFull, 'status' | 'versions'>[] = [
   {
     id: 1, title: 'Briket Arang dari Tempurung Kelapa', slug: 'briket-arang-tempurung',
     author: pub(4), wasteKind: 'tempurung', wasteLabel: 'Tempurung', product: 'Briket',
@@ -261,4 +271,8 @@ const blueprintSeeds: Omit<BlueprintFull, 'status'>[] = [
 ]
 
 // Seed selalu berstatus published; kontribusi baru akan berstatus submitted (menunggu kurasi).
-export const blueprintsFull: BlueprintFull[] = blueprintSeeds.map((b) => ({ ...b, status: 'published' as const }))
+export const blueprintsFull: BlueprintFull[] = blueprintSeeds.map((b) => ({
+  ...b,
+  status: 'published' as const,
+  versions: makeVersions(b),
+}))

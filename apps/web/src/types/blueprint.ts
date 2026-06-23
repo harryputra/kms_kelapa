@@ -74,6 +74,54 @@ export interface BlueprintVariant {
   title: string
 }
 
+export interface BlueprintVersion {
+  version: number
+  changelog: string
+  author: UserProfile
+  createdAt: string
+}
+
+export interface ReplicationReport {
+  id: number
+  user: UserProfile
+  outcome: 'success' | 'partial' | 'fail'
+  note: string
+  costReal: number | null
+  photoSeed: string | null
+  createdAt: string
+}
+
+export interface ReplicationInput {
+  outcome: 'success' | 'partial' | 'fail'
+  note: string
+  costReal: number | null
+  photoSeed: string | null
+}
+
+// ---- Tanya Pakar (Q&A) ----
+export interface QnaAnswer {
+  id: number
+  user: UserProfile
+  content: string
+  votes: number
+  isBest: boolean
+  isExpert: boolean
+  myVote: boolean
+  createdAt: string
+}
+
+export interface QnaQuestion {
+  id: number
+  blueprintId: number | null
+  blueprintTitle: string | null
+  user: UserProfile
+  title: string
+  content: string
+  solved: boolean
+  createdAt: string
+  answers: QnaAnswer[]
+}
+
 export interface BlueprintSummary {
   id: number
   title: string
@@ -123,6 +171,7 @@ export interface BlueprintFull extends BlueprintSummary {
   isBookmarked: boolean
   replications: ReplicationBreakdown
   variants: BlueprintVariant[]
+  versions: BlueprintVersion[]
 }
 
 export interface BlueprintFacets {
