@@ -130,6 +130,166 @@ const BLUEPRINTS = [
     versions: [{ version: 1, changelog: 'Versi awal dipublikasikan.', authorName: 'Budi Santoso', daysAgo: 40 }, { version: 2, changelog: 'Standarisasi mesh & kadar air.', authorName: 'Rina Salsabila', daysAgo: 9 }],
     variants: [{ region: 'Jawa Timur', title: 'Varian sangrai tanpa oven' }],
   },
+  {
+    slug: 'cocofiber-geotekstil', title: 'Cocofiber untuk Geotekstil, Matras & Ekspor', authorEmail: 'moderator@coconexus.test',
+    wasteKind: 'sabut', wasteLabel: 'Sabut', product: 'Cocofiber',
+    excerpt: 'Serat sabut bernilai tinggi untuk matras, jok otomotif, geotekstil, dan ekspor (grade A >15 cm).',
+    maturity: 'curated', difficulty: 'sedang', capitalTier: 'tinggi', minCapital: 15000000, estTime: '1–2 hari',
+    tags: ['cocofiber', 'konstruksi', 'ekspor', 'serat'], sources: ['HIPKI — Asosiasi Industri Sabut Kelapa', 'Praktik eksportir serat'],
+    economic: { capital: 15000000, costPerBatch: 45000, batchInputKg: 100, batchOutputKg: 45, sellPricePerKg: 3000 },
+    materials: [
+      { name: 'Sabut kelapa', qty: '100 kg', tier: 'wajib', price: 30000 },
+      { name: 'Mesin penghasil serat (defibering)', qty: '1 unit', tier: 'mahal', price: 15000000 },
+      { name: 'Mesin press bal (baling)', qty: '1 unit', tier: 'mahal', price: 8000000, note: 'Untuk efisiensi kirim & ekspor' },
+    ],
+    steps: [
+      { order: 1, title: 'Penguraian serat', detail: 'Proses sabut di mesin defibering; pisahkan serat panjang (bristle) dari serbuk.' },
+      { order: 2, title: 'Penjemuran', detail: 'Keringkan serat hingga kadar air aman.', duration: '4–6 jam', temperature: 'sinar matahari' },
+      { order: 3, title: 'Penyortiran grade', detail: 'Sortir berdasarkan panjang: Grade A (>15 cm) ekspor, Grade B lokal.' },
+      { order: 4, title: 'Pengepresan bal', detail: 'Press serat menjadi bal padat lalu ikat & beri label grade.' },
+    ],
+    quality: [{ name: 'Panjang serat', target: '> 15 cm (Grade A)', method: 'Sortir & ukur manual' }, { name: 'Kadar air', target: '< 18%', method: 'Timbang sampel' }],
+    safety: [{ risk: 'Debu & serat terbang', mitigation: 'Masker + ventilasi/exhaust' }, { risk: 'Mesin berdaya tinggi', mitigation: 'Operator terlatih, tombol darurat' }],
+    reports: [], versions: [{ version: 1, changelog: 'Versi awal dipublikasikan.', authorName: 'Rina Salsabila', daysAgo: 38 }],
+    variants: [],
+  },
+  {
+    slug: 'arang-aktif-tempurung', title: 'Arang Aktif (Activated Carbon) dari Tempurung', authorEmail: 'siti@coconexus.test',
+    wasteKind: 'tempurung', wasteLabel: 'Tempurung', product: 'Arang Aktif',
+    excerpt: 'Produk bernilai ekspor tinggi untuk filtrasi air/udara & industri. Mutu kunci: bilangan iodin ≥750 mg/g (SNI 06-3730-1995).',
+    maturity: 'curated', difficulty: 'sulit', capitalTier: 'tinggi', minCapital: 14000000, estTime: '3–4 hari',
+    tags: ['arang-aktif', 'activated-carbon', 'mutu', 'ekspor'], sources: ['SNI 06-3730-1995 — Arang Aktif Teknis', 'Spektrum Industri, Univ. Ahmad Dahlan (2014)'],
+    economic: { capital: 14000000, costPerBatch: 80000, batchInputKg: 20, batchOutputKg: 8, sellPricePerKg: 28000 },
+    materials: [
+      { name: 'Arang tempurung (hasil karbonisasi)', qty: '20 kg', tier: 'wajib', price: 60000 },
+      { name: 'Tungku/retort aktivasi tahan suhu tinggi', qty: '1 unit', tier: 'mahal', price: 12000000 },
+      { name: 'Generator uap (steam)', qty: '1 unit', tier: 'mahal', price: 2500000, note: 'Untuk aktivasi fisika' },
+      { name: 'KOH/H₃PO₄ (aktivasi kimia, opsi)', qty: 'sesuai proses', tier: 'wajib', price: 80000 },
+    ],
+    steps: [
+      { order: 1, title: 'Karbonisasi', detail: 'Hasilkan arang dari tempurung di tungku tertutup.', temperature: '400–600°C' },
+      { order: 2, title: 'Penghalusan & ukuran', detail: 'Hancurkan & ayak arang ke ukuran granular/mesh yang diinginkan.' },
+      { order: 3, title: 'Aktivasi (fisika)', detail: 'Alirkan uap panas pada suhu tinggi untuk membuka pori. ±800°C umumnya optimal.', temperature: '800–900°C', duration: '1–2 jam' },
+      { order: 4, title: 'Pencucian & penetralan', detail: 'Cuci dengan air hingga pH netral untuk membuang residu aktivator.' },
+      { order: 5, title: 'Pengeringan & pengayakan', detail: 'Keringkan lalu sortir mesh sesuai permintaan pembeli.', duration: '1 hari' },
+    ],
+    quality: [
+      { name: 'Bilangan iodin', target: '≥ 750 mg/g (SNI 06-3730-1995)', method: 'Titrasi iodin (lab)' },
+      { name: 'Kadar air', target: '< 15% (terbaik 1–4%)', method: 'Oven 105°C' },
+      { name: 'Kadar abu', target: '< 10%', method: 'Pengabuan (lab)' },
+    ],
+    safety: [{ risk: 'Suhu sangat tinggi (>800°C)', mitigation: 'APD lengkap, isolasi panas, operator terlatih' }, { risk: 'Bahan kimia aktivator', mitigation: 'Sarung tangan & kacamata tahan kimia, ventilasi' }],
+    reports: [{ authorEmail: 'siti@coconexus.test', outcome: 'partial', note: 'Iodin baru ~700, suhu aktivasi kurang stabil. Perlu tungku lebih baik.', costReal: 14500000, photoSeed: 'arang-siti', daysAgo: 14 }],
+    versions: [{ version: 1, changelog: 'Versi awal dipublikasikan.', authorName: 'Siti Marwah', daysAgo: 36 }],
+    variants: [{ region: 'Sumatera', title: 'Varian aktivasi microwave (skala riset)' }],
+  },
+  {
+    slug: 'kerajinan-tempurung-kelapa', title: 'Kerajinan Batok Kelapa: Mangkok, Lampu Hias & Aksesori', authorEmail: 'user@coconexus.test',
+    wasteKind: 'tempurung', wasteLabel: 'Tempurung', product: 'Kerajinan',
+    excerpt: 'Sulap batok kelapa jadi produk kriya bernilai seni tinggi — modal kecil, margin besar, ramah lingkungan.',
+    maturity: 'curated', difficulty: 'mudah', capitalTier: 'rendah', minCapital: 500000, estTime: '2–3 hari',
+    tags: ['kerajinan', 'kriya', 'dekorasi', 'eco', 'UMKM'], sources: ['Jurnal Pendidikan Seni Rupa, Undiksha', 'Eprints UNM — Kerajinan Tempurung Kelapa'],
+    economic: { capital: 500000, costPerBatch: 70000, batchInputKg: 20, batchOutputKg: 15, sellPricePerKg: 35000 },
+    materials: [
+      { name: 'Tempurung kelapa tua (utuh/pecahan)', qty: '20 butir', tier: 'wajib', price: 10000, note: 'Pilih yang tebal & mulus' },
+      { name: 'Gerinda + mata potong', qty: '1 unit', tier: 'wajib', price: 250000, note: 'Memotong rapi tanpa pecah' },
+      { name: 'Amplas kasar–halus (80–1000)', qty: '1 set', tier: 'wajib', price: 30000 },
+      { name: 'Pernis/vernis kayu (food-grade utk wadah)', qty: '1 kaleng', tier: 'wajib', price: 45000 },
+    ],
+    steps: [
+      { order: 1, title: 'Desain & seleksi', detail: 'Tentukan produk (mangkok/lampu/kancing) lalu pilih batok sesuai bentuk & ketebalan.' },
+      { order: 2, title: 'Pembersihan', detail: 'Bersihkan sisa sabut & serabut yang menempel.' },
+      { order: 3, title: 'Pemotongan', detail: 'Potong/bentuk batok dengan gerinda. Hindari parang/pisau pada poros agar tidak pecah.' },
+      { order: 4, title: 'Pengamplasan bertahap', detail: 'Amplas dari kasar ke halus hingga permukaan rata & licin (luar & dalam).' },
+      { order: 5, title: 'Perakitan / pengeboran', detail: 'Bor pola/lubang (untuk lampu hias), rakit komponen dengan lem/fitting.' },
+      { order: 6, title: 'Finishing pernis', detail: 'Lapisi pernis agar mengkilap & tahan air, lalu jemur hingga kering.', dose: '1–2 lapis tipis' },
+    ],
+    quality: [
+      { name: 'Kehalusan permukaan', target: 'Rata, tidak berserat/tajam', method: 'Raba & inspeksi visual' },
+      { name: 'Kerapian potongan', target: 'Simetris, tidak retak', method: 'Inspeksi visual' },
+      { name: 'Keamanan pangan (wadah)', target: 'Pernis food-grade', method: 'Cek sertifikasi bahan' },
+    ],
+    safety: [{ risk: 'Serpihan & debu saat menggerinda', mitigation: 'Kacamata pelindung + masker' }, { risk: 'Uap pernis/pelarut', mitigation: 'Ruang berventilasi, jauh dari api' }],
+    reports: [{ authorEmail: 'user@coconexus.test', outcome: 'success', note: 'Mangkok batok laku di toko suvenir. Finishing pernis kunci tampilan.', costReal: 520000, photoSeed: 'kerajinan-budi', daysAgo: 7 }],
+    versions: [{ version: 1, changelog: 'Versi awal dipublikasikan.', authorName: 'Budi Santoso', daysAgo: 30 }],
+    variants: [{ region: 'Bali', title: 'Varian kancing & aksesori batik batok' }],
+  },
+  {
+    slug: 'cuka-air-kelapa', title: 'Cuka Organik dari Air Kelapa (Fermentasi 2 Tahap)', authorEmail: 'siti@coconexus.test',
+    wasteKind: 'air', wasteLabel: 'Air Kelapa', product: 'Cuka',
+    excerpt: 'Fermentasi dua tahap mengubah air kelapa menjadi cuka organik (asam asetat ≥4%) untuk pangan & kesehatan.',
+    maturity: 'curated', difficulty: 'sedang', capitalTier: 'rendah', minCapital: 250000, estTime: '21–28 hari',
+    tags: ['cuka', 'vinegar', 'fermentasi', 'organik'], sources: ['Jurnal Teknologi Pertanian UB (Irnia & Nur Hidayat)', 'BPTP Sulawesi Barat'],
+    economic: { capital: 250000, costPerBatch: 18000, batchInputKg: 20, batchOutputKg: 15, sellPricePerKg: 12000 },
+    materials: [
+      { name: 'Air kelapa', qty: '20 liter', tier: 'wajib', price: 0 },
+      { name: 'Gula pasir/gula merah', qty: '3 kg', tier: 'wajib', price: 36000, note: 'Pengkayaan gula hingga ±15%' },
+      { name: 'Ragi roti (Saccharomyces cerevisiae)', qty: '20 g', tier: 'wajib', price: 8000 },
+      { name: 'Starter cuka (mother of vinegar)', qty: '1 liter', tier: 'wajib', price: 15000 },
+    ],
+    steps: [
+      { order: 1, title: 'Pengkayaan gula & pasteurisasi', detail: 'Larutkan gula ke air kelapa hingga ±15%, pasteurisasi lalu dinginkan.', dose: 'gula ±15%' },
+      { order: 2, title: 'Fermentasi alkohol', detail: 'Tambah ragi, tutup (anaerob), diamkan hingga terbentuk alkohol.', duration: '5–7 hari', temperature: '28–32°C' },
+      { order: 3, title: 'Fermentasi asetat', detail: 'Tambah mother of vinegar, tutup kain (butuh oksigen) agar alkohol jadi asam asetat.', duration: '14–21 hari' },
+      { order: 4, title: 'Penyaringan & pasteurisasi', detail: 'Saring jernih, pasteurisasi ringan, lalu botolkan.' },
+    ],
+    quality: [{ name: 'Kadar asam asetat', target: '≥ 4% (cuka makan)', method: 'Titrasi asam-basa (lab)' }, { name: 'Keasaman (pH)', target: '±2,5–3,5', method: 'pH meter' }],
+    safety: [{ risk: 'Kontaminasi mikroba liar', mitigation: 'Wadah & alat steril, kontrol pH' }, { risk: 'Tekanan gas fermentasi', mitigation: 'Gunakan airlock / tutup tidak rapat penuh' }],
+    reports: [], versions: [{ version: 1, changelog: 'Versi awal dipublikasikan.', authorName: 'Siti Marwah', daysAgo: 25 }],
+    variants: [],
+  },
+  {
+    slug: 'pot-sabut-cocopot', title: 'Pot Biodegradable dari Sabut (Cocopot)', authorEmail: 'user@coconexus.test',
+    wasteKind: 'sabut', wasteLabel: 'Sabut', product: 'Pot Sabut',
+    excerpt: 'Pot organik yang bisa langsung ditanam & terurai jadi pupuk — favorit pembibitan & urban farming.',
+    maturity: 'curated', difficulty: 'mudah', capitalTier: 'rendah', minCapital: 400000, estTime: '2 hari',
+    tags: ['pot', 'eco', 'pembibitan', 'biodegradable'], sources: ['Praktik UMKM Sukabumi', 'Riset pot biodegradable sabut'],
+    economic: { capital: 400000, costPerBatch: 18000, batchInputKg: 5, batchOutputKg: 2.5, sellPricePerKg: 22000 },
+    materials: [
+      { name: 'Serat & gabus sabut', qty: '5 kg', tier: 'wajib', price: 5000 },
+      { name: 'Lateks/perekat alami', qty: '1 kg', tier: 'wajib', price: 28000, note: 'Bisa pakai pati sebagai alternatif' },
+      { name: 'Cetakan pot (jantan-betina)', qty: '1 set', tier: 'murah', price: 320000 },
+    ],
+    steps: [
+      { order: 1, title: 'Pencampuran', detail: 'Campur serat & gabus sabut dengan perekat alami hingga merata & lengket.' },
+      { order: 2, title: 'Pencetakan', detail: 'Tekan campuran ke cetakan; padatkan agar dinding rapi & kokoh.' },
+      { order: 3, title: 'Pengeringan', detail: 'Jemur hingga pot mengeras & set.', duration: '1–2 hari', temperature: 'matahari' },
+    ],
+    quality: [{ name: 'Kekuatan dinding', target: 'Tidak mudah sobek', method: 'Uji tekan & isi media' }, { name: 'Biodegradabilitas', target: 'Terurai < 6 bulan', method: 'Uji tanam' }],
+    safety: [{ risk: 'Debu sabut', mitigation: 'Masker saat mengurai/mencampur' }],
+    reports: [], versions: [{ version: 1, changelog: 'Versi awal dipublikasikan.', authorName: 'Budi Santoso', daysAgo: 22 }],
+    variants: [],
+  },
+  {
+    slug: 'pakan-ternak-ampas-kelapa', title: 'Pakan Ternak Fermentasi dari Ampas Kelapa', authorEmail: 'siti@coconexus.test',
+    wasteKind: 'ampas', wasteLabel: 'Ampas', product: 'Pakan Ternak',
+    excerpt: 'Fermentasi ampas kelapa dengan probiotik menaikkan protein hingga ~2× (11%→26%), jadi pakan murah & sehat.',
+    maturity: 'validated', difficulty: 'mudah', capitalTier: 'rendah', minCapital: 150000, estTime: '12–15 hari',
+    tags: ['pakan', 'ternak', 'fermentasi', 'probiotik', 'EM4'], sources: ['Distan Prov. Bangka Belitung', 'JANHUS, Univ. Garut'],
+    economic: { capital: 150000, costPerBatch: 47000, batchInputKg: 20, batchOutputKg: 20, sellPricePerKg: 4000 },
+    materials: [
+      { name: 'Ampas kelapa segar', qty: '20 kg', tier: 'wajib', price: 0, note: 'Hasil samping santan/parutan' },
+      { name: 'Probiotik EM4 Peternakan', qty: '100 ml', tier: 'wajib', price: 25000 },
+      { name: 'Molase / gula merah', qty: '0,5 kg', tier: 'wajib', price: 12000, note: 'Sumber energi bakteri' },
+      { name: 'Drum/wadah kedap udara + beban', qty: '1 unit', tier: 'wajib', price: 90000, note: 'Kondisi anaerob penting' },
+    ],
+    steps: [
+      { order: 1, title: 'Larutan probiotik', detail: 'Larutkan EM4 + molase dalam air, diamkan agar bakteri aktif.', duration: '10–15 menit' },
+      { order: 2, title: 'Pencampuran', detail: 'Basahi ampas dengan larutan probiotik hingga lembap merata (tidak becek).', dose: 'kelembapan ±40–50%' },
+      { order: 3, title: 'Pemadatan anaerob', detail: 'Masukkan ke drum, padatkan, beri beban & tutup rapat (tanpa oksigen).' },
+      { order: 4, title: 'Fermentasi', detail: 'Simpan di tempat teduh; penguraian serat optimal pada 12–15 hari.', duration: '12–15 hari' },
+      { order: 5, title: 'Pemanenan', detail: 'Buka wadah; pakan beraroma asam-harum & tidak berjamur. Angin-anginkan lalu berikan.' },
+    ],
+    quality: [
+      { name: 'Aroma', target: 'Asam-harum, tidak busuk', method: 'Uji aroma' },
+      { name: 'Bebas jamur', target: 'Tidak ada jamur/lendir', method: 'Inspeksi visual' },
+      { name: 'Kandungan protein', target: 'Naik signifikan (riset ±26%)', method: 'Analisis proksimat (lab)' },
+    ],
+    safety: [{ risk: 'Pakan busuk bila bocor udara', mitigation: 'Pastikan wadah kedap & padat (anaerob)' }, { risk: 'Kontaminasi jamur', mitigation: 'Jaga kelembapan ±40–50%, alat bersih' }],
+    reports: [{ authorEmail: 'user@coconexus.test', outcome: 'success', note: 'Ayam lebih lahap, biaya pakan turun. Aroma fermentasi harum.', costReal: 160000, photoSeed: 'pakan-budi', daysAgo: 10 }],
+    versions: [{ version: 1, changelog: 'Versi awal dipublikasikan.', authorName: 'Siti Marwah', daysAgo: 28 }],
+    variants: [{ region: 'Jawa Tengah', title: 'Varian + ampas tahu untuk protein lebih tinggi' }],
+  },
 ]
 
 async function main() {
@@ -152,6 +312,23 @@ async function main() {
       profile: { create: { displayName: 'Andi Pratama', jobTitle: 'System Administrator' } },
     },
   })
+
+  // --- Esensial: konfigurasi Asisten AI dari env (opsional) ---
+  // create-only: hanya mengisi bila key belum ada, agar tidak menimpa pengaturan
+  // yang diubah admin lewat UI. Set di .env untuk pre-configure Ollama/OpenWebUI.
+  const aiEnv: Record<string, string | undefined> = {
+    'ai.enabled': process.env.AI_ENABLED,
+    'ai.provider': process.env.AI_PROVIDER,
+    'ai.base_url': process.env.AI_BASE_URL,
+    'ai.model': process.env.AI_MODEL,
+    'ai.api_key': process.env.AI_API_KEY,
+    'ai.temperature': process.env.AI_TEMPERATURE,
+    'ai.max_tokens': process.env.AI_MAX_TOKENS,
+    'ai.top_k': process.env.AI_TOP_K,
+  }
+  for (const [key, value] of Object.entries(aiEnv)) {
+    if (value != null && value !== '') await prisma.systemSetting.upsert({ where: { key }, update: {}, create: { key, value } })
+  }
 
   if (!env.SEED_DEMO) {
     console.log('✅ Seed esensial selesai (SEED_DEMO=false).')
