@@ -5,6 +5,7 @@ import {
   LayoutDashboard, FileText, PenSquare, Bookmark, Bell, User, Wrench,
   ClipboardCheck, LayoutTemplate, MessageSquareWarning, Flag, Stamp,
   Users, Settings, ListTree, Trash2, ScrollText, ShieldCheck, Gavel, Bot,
+  MessageCircleQuestion, MessagesSquare, Repeat2,
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notifications'
@@ -24,6 +25,14 @@ const userGroup = computed<Item[]>(() => [
   { label: 'Notifikasi', to: '/dashboard/notifications', icon: Bell, badge: () => notif.unreadCount || undefined },
   { label: 'Profil', to: '/dashboard/profile', icon: User },
 ])
+
+const komunitasGroup: Item[] = [
+  { label: 'Asisten AI (COCO)', to: '/asisten', icon: Bot },
+  { label: 'Tanya Pakar', to: '/tanya', icon: MessageCircleQuestion },
+  { label: 'Forum Diskusi', to: '/forum', icon: MessagesSquare },
+  { label: 'Bursa Limbah', to: '/bursa', icon: Repeat2 },
+  { label: 'Direktori UMKM', to: '/direktori', icon: Users },
+]
 
 const modGroup: Item[] = [
   { label: 'Dashboard Moderator', to: '/moderator', icon: Gavel },
@@ -55,6 +64,14 @@ const isActive = (to: string) => route.path === to
         <component :is="item.icon" class="h-[18px] w-[18px]" />
         <span class="flex-1">{{ item.label }}</span>
         <span v-if="item.badge?.()" class="chip bg-danger px-1.5 text-[10px] text-white">{{ item.badge() }}</span>
+      </RouterLink>
+    </nav>
+
+    <nav class="space-y-1">
+      <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted/70">Komunitas</p>
+      <RouterLink v-for="item in komunitasGroup" :key="item.to" :to="item.to" class="side-link" :class="isActive(item.to) && 'side-link-active'">
+        <component :is="item.icon" class="h-[18px] w-[18px]" />
+        <span class="flex-1">{{ item.label }}</span>
       </RouterLink>
     </nav>
 

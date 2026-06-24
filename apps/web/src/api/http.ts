@@ -47,7 +47,11 @@ http.interceptors.response.use(
   async (error) => {
     const original = error.config
     const url: string = original?.url ?? ''
-    if (error.response?.status === 401 && original && !original._retry && !url.includes('/auth/')) {
+    // Jangan coba refresh untuk endpoint yang TIDAK boleh memicu refresh
+    // (mencegah loop pada /refresh & salah-trigger pada login/register/logout).
+    // PENTING: /auth/me TETAP boleh memicu refresh → agar sesi pulih saat reload.
+    const noRefresh = /\/auth\/(login|refresh|register|logout)/.test(url)
+    if (error.response?.status === 401 && original && !original._retry && !noRefresh) {
       original._retry = true
       const token = await doRefresh()
       if (token) {
