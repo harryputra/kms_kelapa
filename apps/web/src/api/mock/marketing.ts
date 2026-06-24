@@ -95,6 +95,33 @@ export const MARKETING: Record<string, MarketingPlaybook> = {
     exportNote: 'Pasar utama lokal/organik; ekspor terbatas & butuh standar pangan.',
     tips: ['Konsistensi keasaman (pH) penting', 'Bangun merek "organik/alami" untuk premium'],
   },
+  kerajinan: {
+    targetMarket: ['Toko suvenir & dekorasi', 'Pasar wisata', 'Kafe/restoran estetik', 'Ekspor kriya'],
+    buyers: ['Galeri & toko oleh-oleh', 'Desainer interior', 'Reseller marketplace'],
+    channels: [
+      { name: 'Marketplace & medsos', note: 'Foto produk estetik (Instagram/Shopee/Etsy) menonjolkan serat alami.' },
+      { name: 'Konsinyasi wisata', note: 'Titip jual di toko suvenir & destinasi wisata.' },
+      { name: 'Ekspor kriya', note: 'Produk eco/handmade diminati pasar Eropa & Jepang.' },
+    ],
+    priceRange: 'Rp15.000–150.000/pcs (tergantung kerumitan)',
+    packaging: 'Kemasan rapi + kartu cerita produk (eco/handmade); set untuk gift.',
+    exportPotential: 'sedang',
+    exportNote: 'Pasar kriya handmade & ramah lingkungan tumbuh; butuh konsistensi mutu & desain khas.',
+    tips: ['Jual sebagai cerita (handmade, eco) bukan sekadar batok', 'Buat seri desain konsisten untuk branding', 'Foto produk berkualitas = penentu penjualan online'],
+  },
+  pakan: {
+    targetMarket: ['Peternak ayam kampung/bebek', 'Peternak kambing & ikan', 'Kelompok tani ternak'],
+    buyers: ['Peternak sekitar', 'Toko pakan/poultry shop', 'Koperasi peternak'],
+    channels: [
+      { name: 'B2B peternak lokal', note: 'Jual langsung ke peternak sekitar (hemat ongkos kirim).' },
+      { name: 'Toko pakan', note: 'Suplai ke poultry shop sebagai pakan alternatif murah.' },
+    ],
+    priceRange: 'Rp3.000–5.000/kg (jauh lebih murah dari pakan pabrik)',
+    packaging: 'Karung; cantumkan tanggal fermentasi & cara pemberian.',
+    exportPotential: 'rendah',
+    exportNote: 'Pasar lokal/sekitar; nilai utamanya menekan biaya pakan peternak, bukan ekspor.',
+    tips: ['Tonjolkan penghematan biaya pakan & kenaikan protein', 'Edukasi peternak soal cara simpan & pemberian', 'Gabung dgn ampas tahu untuk protein lebih tinggi'],
+  },
   tepung: {
     targetMarket: ['Industri pangan (kue/roti)', 'Produk diet/gluten-free', 'Ritel sehat'],
     buyers: ['Bakery & UMKM kue', 'Toko produk sehat', 'Konsumen diet'],
