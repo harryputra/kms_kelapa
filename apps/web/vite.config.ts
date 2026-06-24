@@ -7,8 +7,35 @@ import { VitePWA } from 'vite-plugin-pwa'
 // JANGAN hardcode di kode aplikasi — pakai VITE_API_URL ?? '/api'.
 const API_TARGET = process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:3000'
 
+// Service worker "bunuh diri" untuk DEV. Saat ada SW basi sisa build produksi
+// di localhost, browser memeriksa /sw.js tiap navigasi → menerima skrip ini →
+// menghapus semua cache, meng-unregister dirinya, lalu reload semua tab.
+// Efeknya: lingkungan dev otomatis bersih dari shell basi (halaman kosong).
+const KILL_SW = `self.addEventListener('install',()=>self.skipWaiting());
+self.addEventListener('activate',(e)=>{e.waitUntil((async()=>{
+  try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(_){}
+  await self.registration.unregister();
+  const cs=await self.clients.matchAll({type:'window'});
+  cs.forEach((c)=>c.navigate(c.url));
+})())});`
+
+function devKillStaleSW() {
+  return {
+    name: 'kill-stale-sw-dev',
+    apply: 'serve' as const,
+    configureServer(server: { middlewares: { use: (path: string, fn: (req: unknown, res: { setHeader: (k: string, v: string) => void; end: (b: string) => void }) => void) => void } }) {
+      server.middlewares.use('/sw.js', (_req, res) => {
+        res.setHeader('Content-Type', 'application/javascript')
+        res.setHeader('Cache-Control', 'no-store')
+        res.end(KILL_SW)
+      })
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
+    devKillStaleSW(),
     vue(),
     // PWA offline-first — UMKM bisa membaca cetak biru tanpa sinyal di lapangan.
     VitePWA({
