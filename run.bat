@@ -37,6 +37,11 @@ docker info >nul 2>nul || (echo [X] Docker daemon mati. Nyalakan Docker Desktop.
 where pnpm >nul 2>nul || (call corepack enable >nul 2>nul || (echo [X] Jalankan: npm i -g pnpm & goto :end))
 exit /b 0
 
+:checkdocker
+where docker >nul 2>nul || (echo [X] Docker tidak ada. Instal Docker + Compose v2. & goto :end)
+docker info >nul 2>nul || (echo [X] Docker daemon mati. Nyalakan Docker Desktop. & goto :end)
+exit /b 0
+
 :ensureenv
 if not exist "apps\api\.env" copy "apps\api\.env.example" "apps\api\.env" >nul
 if not exist "apps\web\.env" copy "apps\web\.env.example" "apps\web\.env" >nul
@@ -95,7 +100,7 @@ call pnpm -r --parallel run dev
 goto :end
 
 :deploy
-call :checkprereq
+call :checkdocker
 if "%JWT_ACCESS_SECRET%"=="" echo [!] Secret produksi masih default - set JWT_ACCESS_SECRET/JWT_REFRESH_SECRET/ADMIN_PASSWORD sebelum publik.
 echo [>] Build ^& start stack PRODUKSI...
 %COMPOSE% --profile prod up -d --build || goto :end

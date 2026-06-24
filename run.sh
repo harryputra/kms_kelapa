@@ -18,6 +18,15 @@ COMPOSE="docker compose -f infra/docker-compose.yml"
 WEB_PORT="${PORT:-5173}"
 PROD_PORT=8090
 
+# Hanya butuh Docker — dipakai oleh deploy/prod (semua build & jalan di container).
+# Server (mis. lab) TIDAK perlu Node/pnpm untuk mode produksi.
+check_docker(){
+  command -v docker >/dev/null 2>&1 || { err "Docker tidak ada. Instal Docker Engine + Compose v2."; exit 1; }
+  docker info >/dev/null 2>&1 || { err "Docker daemon tidak merespons / tak ada akses. Pastikan daemon hidup & user di grup 'docker'."; exit 1; }
+  docker compose version >/dev/null 2>&1 || { err "Docker Compose v2 tidak ada. Instal plugin 'docker compose'."; exit 1; }
+}
+
+# Butuh Node + pnpm + Docker — dipakai oleh mode DEV NYATA (full) di host.
 check_prereq(){
   command -v node >/dev/null 2>&1 || { err "Node.js tidak ada. Instal Node 20+."; exit 1; }
   command -v docker >/dev/null 2>&1 || { err "Docker tidak ada / daemon mati. Nyalakan Docker Desktop."; exit 1; }
@@ -105,7 +114,7 @@ cmd_full(){
 }
 
 cmd_deploy(){
-  check_prereq; secret_check
+  check_docker; secret_check
   if port_in_use "$PROD_PORT"; then warn "Port ${PROD_PORT} dipakai. Hentikan layanan lain atau ubah port di compose."; fi
   info "Build & start stack PRODUKSI (mysql + api + web)…"
   $COMPOSE --profile prod up -d --build
