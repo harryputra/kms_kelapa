@@ -14,8 +14,8 @@ const layout = computed(() => layouts[route.meta.layout ?? 'public'])
 <template>
   <component :is="layout">
     <router-view v-slot="{ Component }">
-      <transition name="page" mode="out-in">
-        <component :is="Component" />
+      <transition name="page">
+        <component :is="Component" :key="route.path" />
       </transition>
     </router-view>
   </component>
@@ -23,15 +23,13 @@ const layout = computed(() => layouts[route.meta.layout ?? 'public'])
 </template>
 
 <style>
-.page-enter-active,
-.page-leave-active {
+/* Fade masuk halus tanpa mode out-in (out-in di dalam slot layout dinamis
+   menyebabkan view berikutnya gagal ter-mount → halaman kosong). */
+.page-enter-active {
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
 .page-enter-from {
   opacity: 0;
   transform: translateY(6px);
-}
-.page-leave-to {
-  opacity: 0;
 }
 </style>

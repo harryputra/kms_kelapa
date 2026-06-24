@@ -87,6 +87,28 @@ const run = async () => {
     }
   }
 
+  // ---- Pass NAVIGASI SPA (klik antar-menu, bukan full-load) ----
+  // Menangkap bug yang hanya muncul saat navigasi di dalam app (mis. transition).
+  console.log('\n----- Navigasi SPA (klik) sebagai user(3) -----')
+  const sp = await browser.newPage()
+  await sp.goto(BASE + '/', { waitUntil: 'domcontentloaded' })
+  await sp.evaluate(() => localStorage.setItem('coco_uid', '3'))
+  await sp.goto(BASE + '/', { waitUntil: 'networkidle0' })
+  await sleep(800)
+  const navLinks = ['/cetak-biru', '/pohon-nilai', '/articles', '/', '/asisten', '/forum', '/cetak-biru', '/', '/articles']
+  const click = (h) => sp.evaluate((x) => { const a = [...document.querySelectorAll('a')].find((e) => e.getAttribute('href') === x); if (!a) return false; a.click(); return true }, h)
+  let spaBlank = 0, spaTotal = 0
+  for (let round = 1; round <= 2; round++) {
+    for (const href of navLinks) {
+      if (!(await click(href))) continue
+      await sleep(450)
+      const info = await sp.evaluate(() => ({ path: location.pathname, len: (document.querySelector('main')?.innerText || '').trim().length }))
+      spaTotal++
+      if (info.len < 25) { spaBlank++; fails.push({ role: 'spa', path: href, contentLen: info.len, msg: `BLANK saat klik ke ${info.path}` }); console.log(`[FAIL] spa-click ${href} -> ${info.path} BLANK`) }
+    }
+  }
+  console.log(`SPA klik: ${spaBlank}/${spaTotal} blank`)
+
   await browser.close()
   console.log('\n===== RINGKASAN =====')
   console.log(`Total gagal: ${fails.length}`)
